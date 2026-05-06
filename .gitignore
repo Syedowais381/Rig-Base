@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local setup / tooling configs
+.mcp.json
+.cursor/
+
+# setup docs you don't want to publish
+SETUP.md
+setup.md
+docs/SUPABASE_SETUP.md
