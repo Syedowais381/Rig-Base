@@ -1,65 +1,99 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { ArrowRight, Boxes, Brain, Shield } from 'lucide-react'
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen flex flex-col">
+      <header className="border-b border-border-primary">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">R</span>
+            </div>
+            <span className="text-lg font-semibold">Rig Base</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/auth/login"
+              className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Sign in
+            </Link>
+            <Link
+              href="/auth/signup"
+              className="px-4 py-2 text-sm bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              Get started
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </header>
+
+      <main className="flex-1 flex flex-col items-center justify-center px-6">
+        <div className="max-w-3xl text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-muted border border-accent/20 rounded-full text-accent text-sm mb-8">
+            <Brain size={14} />
+            AI-powered ERP built for your business
+          </div>
+
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+            Your business.
+            <br />
+            <span className="text-accent">Your system.</span>
+          </h1>
+
+          <p className="text-lg text-text-secondary max-w-xl mx-auto mb-10">
+            Rig Base builds a completely unique management platform for your business
+            through a single AI conversation. No two systems are the same.
+          </p>
+
+          <Link
+            href="/auth/signup"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Build your system
+            <ArrowRight size={18} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mt-24">
+          <div className="p-6 bg-bg-secondary border border-border-primary rounded-xl">
+            <div className="w-10 h-10 bg-accent-muted rounded-lg flex items-center justify-center mb-4">
+              <Brain size={20} className="text-accent" />
+            </div>
+            <h3 className="font-semibold mb-2">AI-Personalized</h3>
+            <p className="text-sm text-text-secondary">
+              Every module, metric, and workflow is built from what you tell the AI about your business.
+            </p>
+          </div>
+
+          <div className="p-6 bg-bg-secondary border border-border-primary rounded-xl">
+            <div className="w-10 h-10 bg-accent-muted rounded-lg flex items-center justify-center mb-4">
+              <Boxes size={20} className="text-accent" />
+            </div>
+            <h3 className="font-semibold mb-2">Complete ERP</h3>
+            <p className="text-sm text-text-secondary">
+              Dashboard, HR, Inventory, Finance, Supply Chain, and CRM — only the modules you need.
+            </p>
+          </div>
+
+          <div className="p-6 bg-bg-secondary border border-border-primary rounded-xl">
+            <div className="w-10 h-10 bg-accent-muted rounded-lg flex items-center justify-center mb-4">
+              <Shield size={20} className="text-accent" />
+            </div>
+            <h3 className="font-semibold mb-2">Role-Based Access</h3>
+            <p className="text-sm text-text-secondary">
+              Granular permissions for every team member. Everyone sees exactly what they need.
+            </p>
+          </div>
         </div>
       </main>
+
+      <footer className="border-t border-border-primary py-6">
+        <div className="max-w-6xl mx-auto px-6 text-center text-sm text-text-tertiary">
+          Rig Base — Built for your business, by AI.
+        </div>
+      </footer>
     </div>
-  );
+  )
 }

@@ -1,0 +1,63 @@
+'use client'
+
+import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { createClient } from '@/lib/supabase/client'
+import { useWorkspaceStore } from '@/store/workspace'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Loader2 } from 'lucide-react'
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { setProfile, setWorkspace, sidebarOpen } = useWorkspaceStore()
+  const supabase = createClient()
+
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return null
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      return data
+    },
+  })
+
+  const { data: workspace, isLoading: workspaceLoading } = useQuery({
+    queryKey: ['workspace'],
+    queryFn: async () => {
+      const res = await fetch('/api/workspace')
+      if (!res.ok) return null
+      return res.json()
+    },
+  })
+
+  useEffect(() => {
+    if (profile) setProfile(profile)
+  }, [profile, setProfile])
+
+  useEffect(() => {
+    if (workspace) setWorkspace(workspace)
+  }, [workspace, setWorkspace])
+
+  if (profileLoading || workspaceLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin text-accent" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
+        <div className="p-6">
+          {children}
+        </div>
+      </main>
+    </div>
+  )
+}
