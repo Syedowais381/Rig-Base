@@ -15,10 +15,10 @@ interface DataTableProps<T> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function DataTable<T extends Record<string, any>>({ columns, data, onRowClick }: DataTableProps<T>) {
   return (
-    <div className="border border-border-primary rounded-xl overflow-hidden">
+    <div className="border border-border-primary rounded-xl overflow-hidden ai-card">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-border-primary bg-bg-tertiary/50">
+          <tr className="border-b border-border-primary bg-bg-tertiary/60">
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -35,7 +35,7 @@ export function DataTable<T extends Record<string, any>>({ columns, data, onRowC
               key={i}
               onClick={() => onRowClick?.(item)}
               className={`border-b border-border-primary last:border-0 ${
-                onRowClick ? 'cursor-pointer hover:bg-bg-tertiary/50' : ''
+                onRowClick ? 'cursor-pointer hover:bg-bg-tertiary/60' : ''
               } transition-colors`}
             >
               {columns.map((col) => (

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { ExistingSessionBanner } from '@/components/ExistingSessionBanner'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -45,11 +46,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,#3d8bff2a_0%,transparent_40%),radial-gradient(circle_at_80%_70%,#836dff20_0%,transparent_32%)]" />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-accent to-cyan-glow rounded-lg flex items-center justify-center ai-glow">
               <span className="text-white font-bold text-sm">R</span>
             </div>
             <span className="text-xl font-semibold">Rig Base</span>
@@ -58,7 +60,9 @@ export default function LoginPage() {
           <p className="text-text-secondary">Sign in to your account</p>
         </div>
 
-        <div className="bg-bg-secondary border border-border-primary rounded-xl p-6">
+        <ExistingSessionBanner />
+
+        <div className="ai-panel border border-border-primary rounded-xl p-6">
           <button
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-bg-tertiary border border-border-primary rounded-lg hover:bg-bg-elevated transition-colors mb-6"
@@ -91,7 +95,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent transition-colors"
+                className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
                 placeholder="you@company.com"
               />
             </div>
@@ -106,7 +110,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent transition-colors pr-10"
+                  className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg pr-10"
                   placeholder="••••••••"
                 />
                 <button
@@ -122,7 +126,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ai-glow"
             >
               {loading && <Loader2 size={18} className="animate-spin" />}
               Sign in

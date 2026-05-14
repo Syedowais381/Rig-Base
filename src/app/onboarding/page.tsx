@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Loader2, Bot, User } from 'lucide-react'
 import { toast } from 'sonner'
-import { extractOnboardingConfigText } from '@/lib/onboarding-config'
+import { extractOnboardingConfigText, validateOnboardingConfig } from '@/lib/onboarding-config'
 
 interface Message {
   id: string
@@ -14,6 +14,7 @@ interface Message {
 }
 
 const ONBOARDING_DRAFT_KEY = 'rigbase_onboarding_draft_v1'
+
 const GENERATION_STEPS = [
   'Generating your custom ERP system...',
   'Building your workspace...',
@@ -21,51 +22,101 @@ const GENERATION_STEPS = [
 ]
 
 export default function OnboardingPage() {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window === 'undefined') return []
-    try {
-      const raw = localStorage.getItem(ONBOARDING_DRAFT_KEY)
-      if (!raw) return []
-      const parsed = JSON.parse(raw) as { messages?: Message[] }
-      return parsed.messages ?? []
-    } catch {
-      return []
-    }
-  })
+  // Same initial state on server and client — hydrate draft from localStorage after mount (avoids hydration mismatch).
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(() => messages.length === 0)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [pendingConfig, setPendingConfig] = useState<unknown | null>(() => {
-    if (typeof window === 'undefined') return null
-    try {
-      const raw = localStorage.getItem(ONBOARDING_DRAFT_KEY)
-      if (!raw) return null
-      const parsed = JSON.parse(raw) as { pendingConfig?: unknown }
-      return parsed.pendingConfig ?? null
-    } catch {
-      return null
-    }
-  })
+  const [pendingConfig, setPendingConfig] = useState<unknown | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [generationStepIndex, setGenerationStepIndex] = useState(0)
   const [generationProgress, setGenerationProgress] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const bootstrappedRef = useRef(false)
+  /** Blocks duplicate auto-save and prevents sendMessage + useEffect from both calling handleOnboardingComplete. */
+  const lastAutoSavedAssistantIdRef = useRef<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    if (bootstrappedRef.current) return
-    bootstrappedRef.current = true
-    try {
-      if (messages.length === 0) {
-        startConversation()
+    let active = true
+
+    ;(async () => {
+      try {
+        const workspaceRes = await fetch('/api/workspace')
+        if (!active) return
+        if (workspaceRes.ok) {
+          localStorage.removeItem(ONBOARDING_DRAFT_KEY)
+          router.replace('/dashboard')
+          router.refresh()
+          return
+        }
+      } catch {
+        // continue to onboarding
       }
-    } catch {
-      startConversation()
+
+      if (!active) return
+
+      try {
+        const raw = localStorage.getItem(ONBOARDING_DRAFT_KEY)
+        if (raw) {
+          const parsed = JSON.parse(raw) as { messages?: Message[]; pendingConfig?: unknown }
+          if (parsed.messages && parsed.messages.length > 0) {
+            if (!active) return
+            setMessages(parsed.messages)
+            if (parsed.pendingConfig !== undefined && parsed.pendingConfig !== null) {
+              setPendingConfig(parsed.pendingConfig)
+            }
+            setInitialLoading(false)
+            return
+          }
+        }
+      } catch {
+        // fall through
+      }
+
+      if (!active) return
+      await startConversation()
+    })()
+
+    return () => {
+      active = false
     }
-  }, [messages.length])
+  }, [router])
+
+  // If draft ends with a valid workspace JSON but save never ran, auto-save once per assistant message (resume / refresh).
+  useEffect(() => {
+    if (initialLoading || loading || saving) return
+    if (messages.length === 0) return
+
+    const lastAssistant = [...messages].reverse().find((m) => m.role === 'assistant')
+    if (!lastAssistant) return
+    if (lastAutoSavedAssistantIdRef.current === lastAssistant.id) return
+
+    const content = lastAssistant.content
+    const extracted = extractOnboardingConfigText(content)
+    if (!extracted.success) return
+
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(extracted.data)
+    } catch {
+      return
+    }
+
+    const validation = validateOnboardingConfig(parsed)
+    if (!validation.success) return
+
+    const looksLikeFinalConfig =
+      content.includes('ONBOARDING_COMPLETE') ||
+      /```json/i.test(content) ||
+      (content.includes('"setup_checklist"') && content.includes('"roles"') && content.includes('"modules"'))
+
+    if (!looksLikeFinalConfig) return
+
+    lastAutoSavedAssistantIdRef.current = lastAssistant.id
+    void handleOnboardingComplete(content)
+  }, [messages, initialLoading, loading, saving])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -177,10 +228,17 @@ export default function OnboardingPage() {
         content: data.response,
       }
 
+      const containsConfigJson = extractOnboardingConfigText(data.response).success
+      const shouldComplete =
+        data.response.includes('ONBOARDING_COMPLETE') || containsConfigJson
+
+      if (shouldComplete) {
+        lastAutoSavedAssistantIdRef.current = assistantMessage.id
+      }
+
       setMessages((prev) => [...prev, assistantMessage])
 
-      const containsConfigJson = extractOnboardingConfigText(data.response).success
-      if (data.response.includes('ONBOARDING_COMPLETE') || containsConfigJson) {
+      if (shouldComplete) {
         await handleOnboardingComplete(data.response)
       }
     } catch {
@@ -268,6 +326,7 @@ export default function OnboardingPage() {
     if (!saved) return
 
     toast.success('Your workspace is ready!')
+    localStorage.removeItem(ONBOARDING_DRAFT_KEY)
     setTimeout(() => {
       router.push('/dashboard')
       router.refresh()
@@ -283,13 +342,14 @@ export default function OnboardingPage() {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_20%,#3d8bff2a_0%,transparent_42%),radial-gradient(circle_at_70%_80%,#836dff20_0%,transparent_38%)]" />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-4"
+          className="flex flex-col items-center gap-4 ai-panel rounded-2xl px-8 py-7"
         >
-          <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-gradient-to-br from-accent to-cyan-glow rounded-xl flex items-center justify-center ai-glow">
             <Bot size={24} className="text-white" />
           </div>
           <div className="flex items-center gap-2 text-text-secondary">
@@ -302,12 +362,13 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_8%,#3d8bff29_0%,transparent_36%),radial-gradient(circle_at_80%_88%,#836dff1f_0%,transparent_35%)]" />
       {/* Header */}
-      <header className="border-b border-border-primary bg-bg-secondary/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+      <header className="border-b border-border-primary bg-bg-primary/70 backdrop-blur-xl sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-gradient-to-br from-accent to-cyan-glow rounded-xl flex items-center justify-center ai-glow">
               <span className="text-white font-bold text-sm">R</span>
             </div>
             <div>
@@ -318,7 +379,7 @@ export default function OnboardingPage() {
           <div className="hidden sm:flex items-center gap-3 min-w-[260px]">
             <div className="w-full h-2 rounded-full bg-bg-tertiary border border-border-primary overflow-hidden">
               <motion.div
-                className="h-full bg-accent"
+                className="h-full bg-gradient-to-r from-accent via-cyan-glow to-purple-energy"
                 animate={{ width: `${getOnboardingProgress()}%` }}
                 transition={{ duration: 0.35 }}
               />
@@ -338,7 +399,7 @@ export default function OnboardingPage() {
           {!saving && saveError && Boolean(pendingConfig) && (
             <button
               onClick={retrySaveWorkspace}
-              className="text-xs px-3 py-1 rounded-md border border-accent/40 text-accent hover:bg-accent/10 transition-colors"
+              className="text-xs px-3 py-1 rounded-md border border-accent/50 text-accent hover:bg-accent/15 transition-colors"
             >
               Retry save
             </button>
@@ -348,7 +409,7 @@ export default function OnboardingPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+        <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
           <AnimatePresence initial={false}>
             {messages.map((message) => (
               <motion.div
@@ -359,15 +420,15 @@ export default function OnboardingPage() {
                 className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : ''}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="flex-shrink-0 w-8 h-8 bg-accent/10 border border-accent/20 rounded-lg flex items-center justify-center">
+                  <div className="flex-shrink-0 w-8 h-8 bg-accent/15 border border-accent/30 rounded-lg flex items-center justify-center">
                     <Bot size={16} className="text-accent" />
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] rounded-xl px-4 py-3 ${
                     message.role === 'user'
-                      ? 'bg-accent text-white'
-                      : 'bg-bg-secondary border border-border-primary'
+                      ? 'bg-gradient-to-r from-accent to-[#2a74ff] text-white ai-glow'
+                      : 'ai-card border border-border-primary'
                   }`}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -391,25 +452,25 @@ export default function OnboardingPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex gap-3"
             >
-              <div className="w-8 h-8 bg-accent/10 border border-accent/20 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-accent/15 border border-accent/30 rounded-lg flex items-center justify-center">
                 <Bot size={16} className="text-accent" />
               </div>
-              <div className="bg-bg-secondary border border-border-primary rounded-xl px-4 py-3">
+              <div className="ai-card border border-border-primary rounded-xl px-4 py-3">
                 <div className="flex gap-1.5">
                   <motion.div
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
-                    className="w-2 h-2 rounded-full bg-text-tertiary"
+                    className="ai-thinking-dot"
                   />
                   <motion.div
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.2, repeat: Infinity, delay: 0.2 }}
-                    className="w-2 h-2 rounded-full bg-text-tertiary"
+                    className="ai-thinking-dot"
                   />
                   <motion.div
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }}
-                    className="w-2 h-2 rounded-full bg-text-tertiary"
+                    className="ai-thinking-dot"
                   />
                 </div>
               </div>
@@ -421,8 +482,8 @@ export default function OnboardingPage() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border-primary bg-bg-secondary/50 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto px-6 py-4">
+      <div className="border-t border-border-primary bg-bg-primary/75 backdrop-blur-xl">
+        <div className="max-w-4xl mx-auto px-6 py-4">
           <form onSubmit={sendMessage} className="relative">
             <textarea
               ref={inputRef}
@@ -431,7 +492,7 @@ export default function OnboardingPage() {
               onKeyDown={handleKeyDown}
               disabled={loading || saving}
               rows={1}
-              className="w-full px-4 py-3 pr-12 bg-bg-tertiary border border-border-primary rounded-xl focus:outline-none focus:border-accent transition-colors resize-none disabled:opacity-50"
+              className="w-full px-4 py-3 pr-12 bg-bg-tertiary/90 border border-border-primary rounded-xl resize-none disabled:opacity-50"
               placeholder={saving ? 'Building your workspace...' : 'Tell me about your business...'}
             />
             <button
@@ -439,7 +500,7 @@ export default function OnboardingPage() {
               aria-label="Send message"
               title="Send message"
               disabled={!input.trim() || loading || saving}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-text-tertiary hover:text-accent disabled:opacity-30 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-text-tertiary hover:text-cyan-glow disabled:opacity-30 transition-colors"
             >
               <Send size={18} />
             </button>

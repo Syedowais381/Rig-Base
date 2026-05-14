@@ -68,11 +68,11 @@ export function Sidebar() {
   return (
     <motion.aside
       animate={{ width: sidebarOpen ? 256 : 64 }}
-      className="fixed left-0 top-0 h-screen bg-bg-secondary border-r border-border-primary flex flex-col z-20"
+      className="fixed left-0 top-0 h-screen bg-bg-secondary/90 backdrop-blur-xl border-r border-border-primary flex flex-col z-20"
     >
       {/* Logo */}
       <div className="h-14 flex items-center px-4 border-b border-border-primary">
-        <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 bg-gradient-to-br from-accent to-cyan-glow rounded-lg flex items-center justify-center flex-shrink-0 ai-glow">
           <span className="text-white font-bold text-sm">R</span>
         </div>
         {sidebarOpen && (
@@ -97,16 +97,16 @@ export function Sidebar() {
             <Link
               key={module}
               href={route}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative ${
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative ${
                 isActive
-                  ? 'bg-accent/10 text-accent'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
+                  ? 'bg-accent/15 text-cyan-glow border border-accent/25'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/80'
               }`}
             >
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-accent rounded-full"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-cyan-glow rounded-full"
                 />
               )}
               <Icon size={20} className="flex-shrink-0" />
@@ -122,7 +122,7 @@ export function Sidebar() {
       <div className="border-t border-border-primary p-2 space-y-1">
         <Link
           href="/dashboard/settings"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/80 transition-colors"
         >
           <Settings size={20} className="flex-shrink-0" />
           {sidebarOpen && <span className="text-sm">Settings</span>}
@@ -130,7 +130,7 @@ export function Sidebar() {
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/10 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:text-danger hover:bg-danger/12 transition-colors"
         >
           <LogOut size={20} className="flex-shrink-0" />
           {sidebarOpen && <span className="text-sm">Sign out</span>}
@@ -144,7 +144,7 @@ export function Sidebar() {
         </button>
 
         {sidebarOpen && profile && (
-          <div className="px-3 py-2">
+          <div className="px-3 py-2 ai-card rounded-lg border border-border-primary">
             <p className="text-xs font-medium truncate">{profile.full_name}</p>
             <p className="text-xs text-text-tertiary truncate">{profile.business_name}</p>
           </div>

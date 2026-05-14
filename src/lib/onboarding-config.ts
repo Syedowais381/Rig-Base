@@ -69,12 +69,27 @@ function isBoolean(value: unknown): value is boolean {
 }
 
 export function extractOnboardingConfigText(response: string): ValidationResult<string> {
-  const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/i)
-  if (!jsonMatch || !jsonMatch[1]) {
-    return { success: false, error: 'AI response did not include a JSON block.' }
+  const fencedJson = response.match(/```json\s*([\s\S]*?)\s*```/i)
+  if (fencedJson?.[1]?.trim()) {
+    return { success: true, data: fencedJson[1].trim() }
   }
 
-  return { success: true, data: jsonMatch[1] }
+  const fencedAny = response.match(/```\s*([\s\S]*?)\s*```/)
+  const inner = fencedAny?.[1]?.trim()
+  if (inner && inner.startsWith('{') && inner.includes('"business_type"')) {
+    return { success: true, data: inner }
+  }
+
+  const start = response.indexOf('{')
+  const end = response.lastIndexOf('}')
+  if (start !== -1 && end > start) {
+    const slice = response.slice(start, end + 1).trim()
+    if (slice.includes('"business_type"') && slice.includes('"dashboard_metrics"')) {
+      return { success: true, data: slice }
+    }
+  }
+
+  return { success: false, error: 'AI response did not include a usable workspace JSON object.' }
 }
 
 export function validateOnboardingConfig(value: unknown): ValidationResult<OnboardingConfig> {

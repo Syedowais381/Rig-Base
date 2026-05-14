@@ -17,11 +17,22 @@ export async function GET(request: Request) {
           .from('profiles')
           .select('onboarding_completed')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
 
-        if (profile?.onboarding_completed) {
+        if (profile?.onboarding_completed === true) {
           return NextResponse.redirect(`${origin}/dashboard`)
         }
+
+        const { data: workspace } = await supabase
+          .from('workspaces')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        if (workspace) {
+          return NextResponse.redirect(`${origin}/dashboard`)
+        }
+
         return NextResponse.redirect(`${origin}/onboarding`)
       }
     }

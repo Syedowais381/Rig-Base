@@ -89,7 +89,7 @@ export default function FinancePage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 ai-panel rounded-2xl p-6">
         <div>
           <h1 className="text-2xl font-semibold">Finance</h1>
           <p className="text-text-secondary text-sm mt-1">
@@ -98,7 +98,7 @@ export default function FinancePage() {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
         >
           <Plus size={16} />
           Add Transaction
@@ -110,7 +110,7 @@ export default function FinancePage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-bg-secondary border border-border-primary rounded-xl p-5"
+          className="ai-card border border-border-primary rounded-xl p-5"
         >
           <p className="text-xs text-text-tertiary uppercase tracking-wide">Total Revenue</p>
           <p className="text-2xl font-semibold text-success mt-1">${totalRevenue.toLocaleString()}</p>
@@ -119,7 +119,7 @@ export default function FinancePage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-bg-secondary border border-border-primary rounded-xl p-5"
+          className="ai-card border border-border-primary rounded-xl p-5"
         >
           <p className="text-xs text-text-tertiary uppercase tracking-wide">Total Expenses</p>
           <p className="text-2xl font-semibold text-danger mt-1">${totalExpenses.toLocaleString()}</p>
@@ -128,7 +128,7 @@ export default function FinancePage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-bg-secondary border border-border-primary rounded-xl p-5"
+          className="ai-card border border-border-primary rounded-xl p-5"
         >
           <p className="text-xs text-text-tertiary uppercase tracking-wide">Net Profit</p>
           <p className={`text-2xl font-semibold mt-1 ${totalRevenue - totalExpenses >= 0 ? 'text-success' : 'text-danger'}`}>
@@ -138,13 +138,13 @@ export default function FinancePage() {
       </div>
 
       {/* Filter */}
-      <div className="flex gap-1 p-1 bg-bg-secondary border border-border-primary rounded-lg w-fit mb-6">
+      <div className="flex gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg w-fit mb-6">
         {(['all', 'revenue', 'expense'] as const).map((type) => (
           <button
             key={type}
             onClick={() => setFilterType(type)}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors capitalize ${
-              filterType === type ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'
+              filterType === type ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
             }`}
           >
             {type}
@@ -208,7 +208,7 @@ function TransactionForm({
             className={`py-2.5 text-sm font-medium rounded-lg border transition-colors ${
               form.type === 'revenue'
                 ? 'bg-success/10 border-success/30 text-success'
-                : 'bg-bg-tertiary border-border-primary text-text-secondary'
+                : 'bg-bg-tertiary border-border-primary text-text-secondary hover:bg-bg-elevated'
             }`}
           >
             Revenue
@@ -219,7 +219,7 @@ function TransactionForm({
             className={`py-2.5 text-sm font-medium rounded-lg border transition-colors ${
               form.type === 'expense'
                 ? 'bg-danger/10 border-danger/30 text-danger'
-                : 'bg-bg-tertiary border-border-primary text-text-secondary'
+                : 'bg-bg-tertiary border-border-primary text-text-secondary hover:bg-bg-elevated'
             }`}
           >
             Expense
@@ -233,7 +233,7 @@ function TransactionForm({
           required
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -244,7 +244,7 @@ function TransactionForm({
             required
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
             placeholder="e.g. Sales, Rent"
           />
         </div>
@@ -257,7 +257,7 @@ function TransactionForm({
             min="0"
             value={form.amount}
             onChange={(e) => setForm({ ...form, amount: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
       </div>
@@ -269,7 +269,7 @@ function TransactionForm({
             required
             value={form.date}
             onChange={(e) => setForm({ ...form, date: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
         <div>
@@ -278,7 +278,7 @@ function TransactionForm({
             type="text"
             value={form.reference}
             onChange={(e) => setForm({ ...form, reference: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
             placeholder="Invoice #, etc."
           />
         </div>
@@ -286,7 +286,7 @@ function TransactionForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+        className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
       >
         {loading ? 'Adding...' : 'Add Transaction'}
       </button>

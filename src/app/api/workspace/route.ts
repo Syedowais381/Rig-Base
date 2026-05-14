@@ -114,5 +114,15 @@ export async function GET() {
     return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (profile && profile.onboarding_completed === false) {
+    await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
+  }
+
   return NextResponse.json(workspace)
 }

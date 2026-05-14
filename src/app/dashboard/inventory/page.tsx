@@ -81,7 +81,7 @@ export default function InventoryPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 ai-panel rounded-2xl p-6">
         <div>
           <h1 className="text-2xl font-semibold">Inventory</h1>
           <p className="text-text-secondary text-sm mt-1">
@@ -90,7 +90,7 @@ export default function InventoryPage() {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
         >
           <Plus size={16} />
           Add Product
@@ -106,7 +106,7 @@ export default function InventoryPage() {
           {workspace.product_categories.map((cat) => (
             <span
               key={cat}
-              className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-bg-secondary border border-border-primary rounded-lg"
+              className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-bg-secondary/90 border border-border-primary rounded-lg"
             >
               {cat} ({products.filter((p) => p.category === cat).length})
             </span>
@@ -178,7 +178,7 @@ function ProductForm({
           required
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -189,7 +189,7 @@ function ProductForm({
             required
             value={form.sku}
             onChange={(e) => setForm({ ...form, sku: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
         <div>
@@ -197,7 +197,7 @@ function ProductForm({
           <select
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           >
             {categories.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -215,7 +215,7 @@ function ProductForm({
             min="0"
             value={form.quantity}
             onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
         <div>
@@ -226,7 +226,7 @@ function ProductForm({
             step="0.01"
             value={form.unit_price}
             onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
         <div>
@@ -237,7 +237,7 @@ function ProductForm({
             step="0.01"
             value={form.cost_price}
             onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
       </div>
@@ -249,13 +249,13 @@ function ProductForm({
           min="0"
           value={form.min_stock_level}
           onChange={(e) => setForm({ ...form, min_stock_level: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+        className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
       >
         {loading ? 'Adding...' : 'Add Product'}
       </button>

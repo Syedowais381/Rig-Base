@@ -77,7 +77,7 @@ export default function CRMPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 ai-panel rounded-2xl p-6">
         <div>
           <h1 className="text-2xl font-semibold">CRM</h1>
           <p className="text-text-secondary text-sm mt-1">
@@ -86,7 +86,7 @@ export default function CRMPage() {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
         >
           <Plus size={16} />
           Add Customer
@@ -94,13 +94,13 @@ export default function CRMPage() {
       </div>
 
       {/* Filter */}
-      <div className="flex gap-1 p-1 bg-bg-secondary border border-border-primary rounded-lg w-fit mb-6">
+      <div className="flex gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg w-fit mb-6">
         {(['all', 'active', 'lead', 'inactive'] as const).map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors capitalize ${
-              filterStatus === status ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'
+              filterStatus === status ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
             }`}
           >
             {status}
@@ -145,26 +145,26 @@ function CustomerForm({ onSubmit, loading }: { onSubmit: (data: Partial<Customer
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Name</label>
-        <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+        <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
-          <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+          <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone</label>
-          <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+          <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Company</label>
-          <input type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+          <input type="text" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Status</label>
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'active' | 'inactive' | 'lead' })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent">
+          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as 'active' | 'inactive' | 'lead' })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg">
             <option value="active">Active</option>
             <option value="lead">Lead</option>
             <option value="inactive">Inactive</option>
@@ -173,9 +173,9 @@ function CustomerForm({ onSubmit, loading }: { onSubmit: (data: Partial<Customer
       </div>
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Notes</label>
-        <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent resize-none" rows={3} />
+        <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg resize-none" rows={3} />
       </div>
-      <button type="submit" disabled={loading} className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+      <button type="submit" disabled={loading} className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50">
         {loading ? 'Adding...' : 'Add Customer'}
       </button>
     </form>

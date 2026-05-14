@@ -126,7 +126,7 @@ export default function SupplyChainPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 ai-panel rounded-2xl p-6">
         <div>
           <h1 className="text-2xl font-semibold">Supply Chain</h1>
           <p className="text-text-secondary text-sm mt-1">
@@ -135,18 +135,18 @@ export default function SupplyChainPage() {
         </div>
         <button
           onClick={() => activeTab === 'suppliers' ? setShowAddSupplier(true) : setShowAddPO(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
         >
           <Plus size={16} />
           {activeTab === 'suppliers' ? 'Add Supplier' : 'New Order'}
         </button>
       </div>
 
-      <div className="flex gap-1 p-1 bg-bg-secondary border border-border-primary rounded-lg w-fit mb-6">
+      <div className="flex gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg w-fit mb-6">
         <button
           onClick={() => setActiveTab('suppliers')}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            activeTab === 'suppliers' ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'
+            activeTab === 'suppliers' ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
           }`}
         >
           <Building2 size={16} />
@@ -155,7 +155,7 @@ export default function SupplyChainPage() {
         <button
           onClick={() => setActiveTab('orders')}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            activeTab === 'orders' ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'
+            activeTab === 'orders' ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
           }`}
         >
           <FileText size={16} />
@@ -227,27 +227,27 @@ function SupplierForm({ onSubmit, loading }: { onSubmit: (data: Partial<Supplier
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Company name</label>
-        <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+        <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
       </div>
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Contact person</label>
-        <input type="text" required value={form.contact_person} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+        <input type="text" required value={form.contact_person} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
-          <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+          <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Phone</label>
-          <input type="tel" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+          <input type="tel" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Address</label>
-        <textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent resize-none" rows={2} />
+        <textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg resize-none" rows={2} />
       </div>
-      <button type="submit" disabled={loading} className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+      <button type="submit" disabled={loading} className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50">
         {loading ? 'Adding...' : 'Add Supplier'}
       </button>
     </form>
@@ -277,7 +277,7 @@ function POForm({ suppliers, onSubmit, loading }: { suppliers: Supplier[]; onSub
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Supplier</label>
-        <select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent">
+        <select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg">
           {suppliers.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
@@ -286,18 +286,18 @@ function POForm({ suppliers, onSubmit, loading }: { suppliers: Supplier[]; onSub
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Order number</label>
-          <input type="text" required value={form.order_number} onChange={(e) => setForm({ ...form, order_number: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+          <input type="text" required value={form.order_number} onChange={(e) => setForm({ ...form, order_number: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Total amount</label>
-          <input type="number" required step="0.01" value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+          <input type="number" required step="0.01" value={form.total_amount} onChange={(e) => setForm({ ...form, total_amount: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Expected delivery</label>
-        <input type="date" value={form.expected_delivery} onChange={(e) => setForm({ ...form, expected_delivery: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent" />
+        <input type="date" value={form.expected_delivery} onChange={(e) => setForm({ ...form, expected_delivery: e.target.value })} className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg" />
       </div>
-      <button type="submit" disabled={loading} className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+      <button type="submit" disabled={loading} className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50">
         {loading ? 'Creating...' : 'Create Order'}
       </button>
     </form>

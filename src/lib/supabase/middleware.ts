@@ -1,5 +1,27 @@
 import { createServerClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
+
+/** True if profile says done OR a workspace row exists (avoids stuck onboarding when flag is out of sync). */
+async function isUserOnboarded(supabase: SupabaseClient, userId: string): Promise<boolean> {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_completed')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (profile?.onboarding_completed === true) {
+    return true
+  }
+
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  return !!workspace
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -13,7 +35,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({ request })
@@ -29,33 +51,19 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
-  // Public routes
-  if (path === '/' || path.startsWith('/auth')) {
-    if (user) {
-      // Check onboarding status
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed')
-        .eq('id', user.id)
-        .single()
+  // Marketing home: always render (Sign in / Get started stay available).
+  if (path === '/') {
+    return supabaseResponse
+  }
 
-      // Profile might not exist yet (trigger delay) — let them through
-      if (!profile) {
-        return supabaseResponse
-      }
+  // Auth pages: always render so users can enter credentials, switch accounts, or sign out.
+  // (A stale session was skipping the login/signup UI and sending people straight to onboarding.)
+  if (path.startsWith('/auth')) {
+    return supabaseResponse
+  }
 
-      if (!profile.onboarding_completed) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/onboarding'
-        return NextResponse.redirect(url)
-      }
-
-      if (profile.onboarding_completed) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-      }
-    }
+  // API routes: never redirect to HTML login (handlers return JSON 401).
+  if (path.startsWith('/api')) {
     return supabaseResponse
   }
 
@@ -68,13 +76,7 @@ export async function updateSession(request: NextRequest) {
 
   // Onboarding route
   if (path === '/onboarding') {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarding_completed')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.onboarding_completed) {
+    if (await isUserOnboarded(supabase, user.id)) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
@@ -84,13 +86,7 @@ export async function updateSession(request: NextRequest) {
 
   // Dashboard routes — require completed onboarding
   if (path.startsWith('/dashboard')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarding_completed')
-      .eq('id', user.id)
-      .single()
-
-    if (profile && !profile.onboarding_completed) {
+    if (!(await isUserOnboarded(supabase, user.id))) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)

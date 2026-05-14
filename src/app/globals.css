@@ -1,44 +1,126 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-bg-primary: #09090b;
-  --color-bg-secondary: #111113;
-  --color-bg-tertiary: #1a1a1f;
-  --color-bg-elevated: #222228;
-  --color-border-primary: #27272a;
-  --color-border-secondary: #3f3f46;
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-text-tertiary: #71717a;
-  --color-accent: #6366f1;
-  --color-accent-hover: #818cf8;
-  --color-accent-muted: #6366f120;
+  --color-bg-primary: #04070e;
+  --color-bg-secondary: #0a111f;
+  --color-bg-tertiary: #10192b;
+  --color-bg-elevated: #162339;
+  --color-border-primary: #1b2a42;
+  --color-border-secondary: #274063;
+  --color-text-primary: #e8f1ff;
+  --color-text-secondary: #a4b6d3;
+  --color-text-tertiary: #6c7d99;
+  --color-accent: #3d8bff;
+  --color-accent-hover: #67a5ff;
+  --color-accent-muted: #3d8bff22;
+  --color-cyan-glow: #42d7ff;
+  --color-purple-energy: #836dff;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-space-grotesk), "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #27272a transparent;
+  scrollbar-color: #224368 transparent;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--color-bg-primary);
+  background:
+    radial-gradient(circle at 20% -10%, #2563eb40 0%, transparent 40%),
+    radial-gradient(circle at 85% 10%, #8b5cf630 0%, transparent 35%),
+    linear-gradient(180deg, #04070e 0%, #050912 100%);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(123, 169, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123, 169, 255, 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(circle at 50% 20%, black 30%, transparent 100%);
+  mask-image: radial-gradient(circle at 50% 20%, black 30%, transparent 100%);
+  pointer-events: none;
+  z-index: -2;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  width: 60vw;
+  height: 60vw;
+  left: 20vw;
+  top: -35vw;
+  background: radial-gradient(circle, #3694ff1f 0%, transparent 70%);
+  filter: blur(32px);
+  pointer-events: none;
+  z-index: -1;
+  animation: ambientFloat 12s ease-in-out infinite alternate;
 }
 
 input, textarea, select {
   font-family: inherit;
+  color: var(--color-text-primary);
 }
 
 input::placeholder, textarea::placeholder {
   color: var(--color-text-tertiary);
+}
+
+input,
+textarea,
+select,
+button {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #4585ff;
+  box-shadow: 0 0 0 3px #4585ff2c;
+}
+
+.ai-panel {
+  background: linear-gradient(180deg, #0a1222cc 0%, #0d1727bf 100%);
+  border: 1px solid var(--color-border-primary);
+  box-shadow: inset 0 1px 0 #75a3ff14, 0 18px 40px #02050a80;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.ai-card {
+  background: linear-gradient(180deg, #0f1a2e 0%, #0b1425 100%);
+  border: 1px solid #203451;
+  box-shadow: inset 0 1px 0 #76a7ff1f, 0 12px 24px #04091155;
+}
+
+.ai-pill {
+  background: linear-gradient(135deg, #204d8f6b 0%, #1a2d507a 100%);
+  border: 1px solid #3e6eb32e;
+}
+
+.ai-glow {
+  box-shadow: 0 0 0 1px #4a94ff4a, 0 0 36px #3a8fff30;
 }
 
 @keyframes shimmer {
@@ -50,4 +132,22 @@ input::placeholder, textarea::placeholder {
   background: linear-gradient(90deg, transparent 0%, #27272a40 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
+}
+
+@keyframes ambientFloat {
+  0% { transform: translate3d(-2%, 0, 0) scale(1); }
+  100% { transform: translate3d(2%, 5%, 0) scale(1.1); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+
+.ai-thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-cyan-glow);
+  animation: pulseDot 1.3s infinite ease-in-out;
 }

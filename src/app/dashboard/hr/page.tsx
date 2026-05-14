@@ -82,7 +82,7 @@ export default function HRPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 ai-panel rounded-2xl p-6">
         <div>
           <h1 className="text-2xl font-semibold">Human Resources</h1>
           <p className="text-text-secondary text-sm mt-1">
@@ -91,7 +91,7 @@ export default function HRPage() {
         </div>
         <button
           onClick={() => setShowAddEmployee(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
         >
           <Plus size={16} />
           Add Employee
@@ -99,11 +99,11 @@ export default function HRPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-bg-secondary border border-border-primary rounded-lg w-fit mb-6">
+      <div className="flex gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg w-fit mb-6">
         <button
           onClick={() => setActiveTab('employees')}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            activeTab === 'employees' ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'
+            activeTab === 'employees' ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
           }`}
         >
           <Users size={16} />
@@ -112,7 +112,7 @@ export default function HRPage() {
         <button
           onClick={() => setActiveTab('roles')}
           className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-            activeTab === 'roles' ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'
+            activeTab === 'roles' ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
           }`}
         >
           <Shield size={16} />
@@ -142,7 +142,7 @@ export default function HRPage() {
               key={role.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-bg-secondary border border-border-primary rounded-xl p-5"
+              className="ai-card border border-border-primary rounded-xl p-5"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 bg-accent-muted rounded-lg flex items-center justify-center">
@@ -219,7 +219,7 @@ function EmployeeForm({
           required
           value={form.full_name}
           onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
         />
       </div>
       <div>
@@ -229,7 +229,7 @@ function EmployeeForm({
           required
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -239,7 +239,7 @@ function EmployeeForm({
             type="tel"
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
         <div>
@@ -249,7 +249,7 @@ function EmployeeForm({
             required
             value={form.hire_date}
             onChange={(e) => setForm({ ...form, hire_date: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           />
         </div>
       </div>
@@ -259,7 +259,7 @@ function EmployeeForm({
           <select
             value={form.department}
             onChange={(e) => setForm({ ...form, department: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           >
             {departments.map((d) => (
               <option key={d} value={d}>{d}</option>
@@ -271,7 +271,7 @@ function EmployeeForm({
           <select
             value={form.role_id}
             onChange={(e) => setForm({ ...form, role_id: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           >
             {roles.map((r) => (
               <option key={r.id} value={r.id}>{r.name}</option>
@@ -285,14 +285,14 @@ function EmployeeForm({
           type="number"
           value={form.salary}
           onChange={(e) => setForm({ ...form, salary: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg focus:outline-none focus:border-accent"
+          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
           placeholder="Optional"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+        className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
       >
         {loading ? 'Adding...' : 'Add Employee'}
       </button>

@@ -40,8 +40,8 @@ export function MetricCard({ metric, index }: MetricCardProps) {
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#6366f1"
-                fill="#6366f120"
+                stroke="#4b91ff"
+                fill="#4b91ff1f"
                 strokeWidth={1.5}
               />
             </AreaChart>
@@ -51,7 +51,7 @@ export function MetricCard({ metric, index }: MetricCardProps) {
         return (
           <ResponsiveContainer width="100%" height={40}>
             <BarChart data={emptyData}>
-              <Bar dataKey="value" fill="#6366f140" radius={[2, 2, 0, 0]} />
+              <Bar dataKey="value" fill="#4b91ff45" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )
@@ -62,7 +62,7 @@ export function MetricCard({ metric, index }: MetricCardProps) {
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#6366f1"
+                stroke="#4b91ff"
                 strokeWidth={1.5}
                 dot={false}
               />
@@ -81,7 +81,7 @@ export function MetricCard({ metric, index }: MetricCardProps) {
                 innerRadius={12}
                 outerRadius={18}
               >
-                <Cell fill="#27272a" />
+                <Cell fill="#243958" />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
@@ -96,7 +96,7 @@ export function MetricCard({ metric, index }: MetricCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="bg-bg-secondary border border-border-primary rounded-xl p-5 hover:border-border-secondary transition-colors"
+      className="ai-card border border-border-primary rounded-xl p-5 hover:border-border-secondary transition-colors"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -108,7 +108,7 @@ export function MetricCard({ metric, index }: MetricCardProps) {
         <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md ${
           trend === 'up' ? 'text-success bg-success/10' :
           trend === 'down' ? 'text-danger bg-danger/10' :
-          'text-text-tertiary bg-bg-tertiary'
+          'text-text-tertiary bg-bg-tertiary/85'
         }`}>
           {trend === 'up' ? <TrendingUp size={12} /> :
            trend === 'down' ? <TrendingDown size={12} /> :

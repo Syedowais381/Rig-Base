@@ -17,9 +17,9 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 ai-panel rounded-2xl p-6">
         <div>
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-2xl font-semibold tracking-tight">
             Welcome back, {profile?.full_name?.split(' ')[0] || 'there'}
           </h1>
           <p className="text-text-secondary text-sm mt-1">
@@ -42,7 +42,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-bg-secondary border border-border-primary rounded-xl p-6"
+          className="ai-card border border-border-primary rounded-xl p-6"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 bg-accent-muted rounded-lg flex items-center justify-center">
@@ -57,7 +57,7 @@ export default function DashboardPage() {
             <div className="ml-auto">
               <div className="w-32 h-2 bg-bg-tertiary rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-accent rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-accent via-cyan-glow to-purple-energy rounded-full transition-all"
                   style={{ width: `${(completedTasks / totalTasks) * 100}%` }}
                 />
               </div>
@@ -90,8 +90,8 @@ export default function DashboardPage() {
       {/* Empty state when no data */}
       {(!workspace.dashboard_metrics || workspace.dashboard_metrics.length === 0) && (
         <div className="text-center py-16">
-          <div className="w-16 h-16 bg-bg-secondary border border-border-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles size={24} className="text-text-tertiary" />
+          <div className="w-16 h-16 ai-card border border-border-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Sparkles size={24} className="text-cyan-glow" />
           </div>
           <h2 className="text-lg font-semibold mb-2">Your dashboard is ready</h2>
           <p className="text-text-secondary text-sm max-w-md mx-auto">
