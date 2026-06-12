@@ -49,15 +49,15 @@ export default function Home() {
                 </span>
               </h1>
               <p className="text-lg text-text-secondary max-w-2xl mb-10">
-                Rig Base builds a unique management platform for your company through one guided AI session.
-                Launch a complete business command center tuned to your exact workflows.
+                Rig Base builds a personalized management platform for your company through a guided setup form.
+                Launch a complete business command center tuned to your industry, team, and priorities.
               </p>
               <div className="flex items-center gap-4">
                 <Link
                   href="/auth/signup"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium bg-gradient-to-r from-accent to-[#3172ff] hover:to-[#4990ff] ai-glow"
                 >
-                  Launch your AI workspace
+                  Launch your workspace
                   <ArrowRight size={18} />
                 </Link>
                 <Link href="/auth/login" className="text-sm text-text-secondary hover:text-text-primary">
