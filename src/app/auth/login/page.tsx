@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { ExistingSessionBanner } from '@/components/ExistingSessionBanner'
+import { Logo } from '@/components/brand/logo'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -50,12 +51,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,#3d8bff2a_0%,transparent_40%),radial-gradient(circle_at_80%_70%,#836dff20_0%,transparent_32%)]" />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-accent to-cyan-glow rounded-lg flex items-center justify-center ai-glow">
-              <span className="text-white font-bold text-sm">R</span>
-            </div>
-            <span className="text-xl font-semibold">Rig Base</span>
-          </div>
+          <Logo variant="full" size="xl" href="/" className="justify-center mb-8" />
           <h1 className="text-2xl font-semibold mb-2">Welcome back</h1>
           <p className="text-text-secondary">Sign in to your account</p>
         </div>

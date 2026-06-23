@@ -1,145 +1,214 @@
+import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Boxes, Brain, Shield, Sparkles, Radar, Zap } from 'lucide-react'
+import { ArrowRight, BarChart3, Boxes, Shield, Users } from 'lucide-react'
+import { Logo } from '@/components/brand/logo'
+import { ErpModuleGrid } from '@/components/marketing/erp-module-grid'
+import { HeroErpPreview } from '@/components/marketing/hero-erp-preview'
+import { SiteHeader } from '@/components/marketing/site-header'
+
+const HERO_BG_IMAGE = '/images/hero-bg.png'
+
+const CAPABILITIES = [
+  {
+    icon: BarChart3,
+    title: 'Operational visibility',
+    desc: 'Dashboards and metrics aligned to how your business measures performance.',
+    highlight: 'Dashboards and metrics',
+  },
+  {
+    icon: Boxes,
+    title: 'Integrated ERP core',
+    desc: 'Finance, inventory, HR, CRM, and supply chain in one controlled workspace.',
+    highlight: 'Finance, inventory, HR, CRM, and supply chain',
+  },
+  {
+    icon: Shield,
+    title: 'Governed access',
+    desc: 'Role-based permissions that keep teams focused and data protected.',
+    highlight: 'Role-based permissions',
+  },
+  {
+    icon: Users,
+    title: 'Executive insights',
+    desc: 'Request AI analysis on demand — grounded in your live operational data.',
+    highlight: 'AI analysis on demand',
+  },
+]
+
+const WHY_STEPS = [
+  {
+    step: '01',
+    title: 'Structured onboarding',
+    desc: 'Capture your business profile through a disciplined setup process — departments, modules, and KPIs defined upfront.',
+  },
+  {
+    step: '02',
+    title: 'Operational discipline',
+    desc: 'Search, filters, imports, and module workflows designed for day-to-day execution, not demos.',
+  },
+  {
+    step: '03',
+    title: 'Informed decisions',
+    desc: 'Monitor performance with period-aware metrics and request executive AI guidance when you need it.',
+  },
+]
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,#3d8bff22_0%,transparent_40%),radial-gradient(circle_at_85%_20%,#836dff1e_0%,transparent_32%)]" />
-      <header className="sticky top-0 z-20 border-b border-border-primary/80 bg-bg-primary/70 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-accent to-cyan-glow ai-glow">
-              <span className="text-white font-bold text-sm">R</span>
-            </div>
-            <div>
-              <span className="text-base font-semibold tracking-wide">Rig Base</span>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-text-tertiary">AI Operating System</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/auth/login" className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary">
-              Sign in
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="px-4 py-2 text-sm rounded-lg text-white bg-gradient-to-r from-accent to-[#3172ff] hover:from-accent-hover hover:to-[#4285ff] ai-glow"
-            >
-              Get started
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col">
+      <SiteHeader />
 
-      <main className="flex-1 px-6 pt-16 pb-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 items-stretch mb-16">
-            <section className="ai-panel rounded-3xl p-8 md:p-12 relative overflow-hidden">
-              <div className="absolute -top-20 -right-20 h-52 w-52 rounded-full bg-[#3d8bff24] blur-3xl" />
-              <div className="inline-flex items-center gap-2 px-3 py-1 ai-pill rounded-full text-cyan-glow text-xs mb-8">
-                <Brain size={14} />
-                AI-powered ERP built for your business
-              </div>
-              <h1 className="text-5xl md:text-6xl font-semibold tracking-tight mb-6 leading-[1.05]">
-                The future
+      <section className="relative min-h-[100vh] flex items-center overflow-hidden">
+        <div className="absolute inset-0 bg-[#070b12]" aria-hidden>
+          <Image
+            src={HERO_BG_IMAGE}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        </div>
+        <div className="absolute inset-0 hero-bg-image-overlay" aria-hidden />
+        <div className="absolute inset-0 hero-bg-glow" aria-hidden />
+        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-bg-primary to-transparent" />
+
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-32 sm:pt-36 pb-20 lg:pb-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16 items-center">
+            <div className="max-w-2xl">
+              <p className="text-eyebrow mb-6 text-slate-400">Enterprise operations platform</p>
+
+              <h1 className="text-display text-[clamp(2.35rem,5vw,3.85rem)] text-white mb-6">
+                The operating system
                 <br />
-                of enterprise
-                <br />
-                <span className="bg-gradient-to-r from-[#74b3ff] via-cyan-glow to-[#b29bff] bg-clip-text text-transparent">
-                  operations intelligence
-                </span>
+                for serious businesses.
               </h1>
-              <p className="text-lg text-text-secondary max-w-2xl mb-10">
-                Rig Base builds a personalized management platform for your company through a guided setup form.
-                Launch a complete business command center tuned to your industry, team, and priorities.
+
+              <p className="text-lead max-w-xl mb-3 text-slate-300">
+                Rig Base delivers a structured workspace for{' '}
+                <span className="text-emphasis text-white">finance</span>,{' '}
+                <span className="text-emphasis text-white">inventory</span>,{' '}
+                <span className="text-emphasis text-white">HR</span>,{' '}
+                <span className="text-emphasis text-white">CRM</span>, and{' '}
+                <span className="text-emphasis text-white">supply chain</span>
+                — configured to your industry, not a generic template.
               </p>
-              <div className="flex items-center gap-4">
+
+              <p className="text-sm text-slate-400 mb-10 max-w-lg">
+                Built for owners and operators who need clarity, control, and accountable reporting.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <Link
                   href="/auth/signup"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium bg-gradient-to-r from-accent to-[#3172ff] hover:to-[#4990ff] ai-glow"
+                  className="marketing-btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-white bg-accent hover:bg-accent-hover"
                 >
                   Launch your workspace
-                  <ArrowRight size={18} />
+                  <ArrowRight size={16} strokeWidth={2.25} />
                 </Link>
-                <Link href="/auth/login" className="text-sm text-text-secondary hover:text-text-primary">
-                  Continue setup
+                <Link
+                  href="/auth/login"
+                  className="inline-flex items-center px-2 py-3 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors duration-200"
+                >
+                  Sign in to existing account
                 </Link>
               </div>
-            </section>
+            </div>
 
-            <section className="ai-card rounded-3xl p-8 flex flex-col justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-text-tertiary mb-5">System Activity</p>
-                <div className="space-y-4">
-                  {[
-                    ['AI Orchestration', 'Optimizing business modules'],
-                    ['Workflow Engine', 'Generating intelligent automations'],
-                    ['Data Grid', 'Sync healthy across departments'],
-                  ].map(([title, value]) => (
-                    <div key={title} className="rounded-xl border border-border-primary bg-bg-secondary/70 px-4 py-3">
-                      <p className="text-xs text-text-tertiary">{title}</p>
-                      <p className="text-sm font-medium mt-1">{value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="pt-6 mt-6 border-t border-border-primary">
-                <p className="text-sm text-text-secondary">All core operations from one AI-native cockpit.</p>
-              </div>
-            </section>
+            <div className="hidden lg:flex justify-end">
+              <HeroErpPreview />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-            <div className="ai-card rounded-2xl p-6">
-              <div className="w-11 h-11 bg-accent-muted rounded-xl flex items-center justify-center mb-4">
-                <Brain size={20} className="text-accent" />
+          <div className="lg:hidden mt-12">
+            <HeroErpPreview />
+          </div>
+        </div>
+      </section>
+
+      <ErpModuleGrid />
+
+      <main id="capabilities" className="relative px-6 pb-20 pt-16 scroll-mt-32">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-10 max-w-2xl">
+            <p className="text-eyebrow mb-3">Platform capabilities</p>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
+              Everything required to run the business, in one place.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {CAPABILITIES.map((item) => (
+              <div
+                key={item.title}
+                className="marketing-card-hover group rounded-xl border border-border-primary bg-bg-secondary p-6 cursor-default"
+              >
+                <div className="w-10 h-10 rounded-lg bg-accent-muted border border-accent-subtle flex items-center justify-center mb-5 group-hover:bg-accent group-hover:border-accent transition-colors duration-300">
+                  <item.icon
+                    size={18}
+                    className="text-accent group-hover:text-white transition-colors duration-300"
+                    strokeWidth={2}
+                  />
+                </div>
+                <h3 className="font-semibold mb-2 text-[15px] text-text-primary tracking-tight group-hover:text-white transition-colors duration-300">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-text-secondary leading-relaxed group-hover:text-slate-300 transition-colors duration-300">
+                  {item.desc.split(item.highlight)[0]}
+                  <span className="text-text-primary font-medium group-hover:text-white transition-colors duration-300">
+                    {item.highlight}
+                  </span>
+                  {item.desc.split(item.highlight)[1]}
+                </p>
               </div>
-              <h3 className="font-semibold mb-2">AI-Personalized</h3>
-              <p className="text-sm text-text-secondary">Every module, metric, and workflow adapts to your company profile.</p>
-            </div>
-            <div className="ai-card rounded-2xl p-6">
-              <div className="w-11 h-11 bg-accent-muted rounded-xl flex items-center justify-center mb-4">
-                <Boxes size={20} className="text-accent" />
-              </div>
-              <h3 className="font-semibold mb-2">Unified ERP Core</h3>
-              <p className="text-sm text-text-secondary">Finance, HR, inventory, CRM, and supply chain in one integrated surface.</p>
-            </div>
-            <div className="ai-card rounded-2xl p-6">
-              <div className="w-11 h-11 bg-accent-muted rounded-xl flex items-center justify-center mb-4">
-                <Shield size={20} className="text-accent" />
-              </div>
-              <h3 className="font-semibold mb-2">Enterprise-Grade Access</h3>
-              <p className="text-sm text-text-secondary">Granular roles and visibility keep every team focused and secure.</p>
-            </div>
-            <div className="ai-card rounded-2xl p-6">
-              <div className="w-11 h-11 bg-accent-muted rounded-xl flex items-center justify-center mb-4">
-                <Radar size={20} className="text-accent" />
-              </div>
-              <h3 className="font-semibold mb-2">Live Intelligence Loop</h3>
-              <p className="text-sm text-text-secondary">An always-on AI layer surfaces actions, risks, and growth opportunities.</p>
-            </div>
+            ))}
           </div>
         </div>
       </main>
 
-      <section className="px-6 pb-16">
-        <div className="max-w-7xl mx-auto ai-panel rounded-3xl p-8 md:p-10 grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {[
-            { icon: Sparkles, title: 'Adaptive Workspace', desc: 'Continuously evolves with your business context.' },
-            { icon: Zap, title: 'Fast Command Layer', desc: 'Move across modules with smooth operational flow.' },
-            { icon: Brain, title: 'Cognitive Assistance', desc: 'AI responses with confidence and business structure.' },
-          ].map((item) => (
-            <div key={item.title} className="rounded-xl border border-border-primary bg-bg-secondary/60 p-5">
-              <item.icon size={18} className="text-cyan-glow mb-3" />
-              <h3 className="text-sm font-semibold">{item.title}</h3>
-              <p className="text-sm text-text-secondary mt-2">{item.desc}</p>
-            </div>
-          ))}
+      <section id="why-rig-base" className="px-6 pb-20 scroll-mt-32">
+        <div className="max-w-7xl mx-auto rounded-xl border border-border-primary bg-bg-secondary p-8 md:p-10 marketing-card-hover">
+          <p className="text-eyebrow mb-6">Why Rig Base</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            {WHY_STEPS.map((item) => (
+              <div
+                key={item.step}
+                className="marketing-step-hover rounded-lg border-l-2 border-accent/40 pl-5 py-4 pr-2"
+              >
+                <p className="text-xs font-mono font-medium text-accent mb-2">{item.step}</p>
+                <h3 className="text-sm font-semibold text-text-primary mb-2">{item.title}</h3>
+                <p className="text-sm text-text-secondary leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <footer className="border-t border-border-primary py-6 bg-bg-primary/60">
-        <div className="max-w-7xl mx-auto px-6 text-center text-sm text-text-tertiary">
-          Rig Base - Built for your business, by AI.
+      <section className="px-6 pb-16">
+        <div className="max-w-7xl mx-auto rounded-xl border border-accent/25 bg-accent/5 p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <p className="text-eyebrow mb-2 text-accent">Ready to operate</p>
+            <h2 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">
+              Configure your ERP workspace in minutes.
+            </h2>
+            <p className="text-sm text-text-secondary mt-2 max-w-lg">
+              Guided setup, module selection, and role configuration — then import your data and run.
+            </p>
+          </div>
+          <Link
+            href="/auth/signup"
+            className="marketing-btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-white bg-accent hover:bg-accent-hover shrink-0"
+          >
+            Start free setup
+            <ArrowRight size={16} strokeWidth={2.25} />
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-border-primary py-8 bg-bg-secondary/40">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-text-tertiary">
+          <Logo variant="mark" size="md" />
+          <span>Enterprise operations. No compromise on clarity.</span>
         </div>
       </footer>
     </div>

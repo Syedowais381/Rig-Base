@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { Logo } from '@/components/brand/logo'
 import {
   BUSINESS_MODEL_OPTIONS,
   DEFAULT_DEPARTMENTS_BY_INDUSTRY,
@@ -300,11 +301,9 @@ export default function OnboardingPage() {
 
       <header className="border-b border-border-primary bg-bg-primary/70 backdrop-blur-xl sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-accent to-cyan-glow rounded-xl flex items-center justify-center ai-glow">
-              <span className="text-white font-bold text-sm">R</span>
-            </div>
-            <div>
+          <div className="flex items-center gap-3 min-w-0">
+            <Logo variant="mark" size="md" href="/" />
+            <div className="min-w-0">
               <p className="text-sm font-medium">Rig Base setup</p>
               <p className="text-xs text-text-tertiary">Step {step + 1} of {STEPS.length}</p>
             </div>

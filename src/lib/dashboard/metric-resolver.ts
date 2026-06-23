@@ -64,8 +64,27 @@ function payrollExpenses(transactions: DashboardData['transactions']): number {
   )
 }
 
+function isTrendVisualization(metric: DashboardMetric): boolean {
+  return (
+    metric.visualization === 'line_chart' ||
+    metric.visualization === 'area_chart' ||
+    metric.visualization === 'bar_chart'
+  )
+}
+
 function isSnapshotMetric(metric: DashboardMetric): boolean {
+  if (isTrendVisualization(metric)) return false
+
   const id = metric.id.toLowerCase()
+  if (
+    id.includes('turnover') ||
+    id.includes('return_rate') ||
+    id.includes('daily_sales') ||
+    id.includes('units_sold')
+  ) {
+    return false
+  }
+
   if (
     id.includes('inventory') ||
     id.includes('stock') ||
@@ -104,7 +123,50 @@ function resolveFinanceValue(
   return revenue || expenses
 }
 
-function resolveInventoryValue(metric: DashboardMetric, data: DashboardData): number {
+function inventoryCostValue(data: DashboardData): number {
+  return safeNumber(
+    data.products.reduce(
+      (sum, p) => sum + p.quantity * Number(p.cost_price > 0 ? p.cost_price : p.unit_price * 0.55),
+      0
+    )
+  )
+}
+
+function resolveInventoryTurnover(
+  transactions: DashboardData['transactions'],
+  data: DashboardData
+): number {
+  const revenue = sumRevenue(transactions)
+  const inventoryCost = inventoryCostValue(data)
+  if (inventoryCost <= 0) return revenue > 0 ? 1 : 0
+  return Math.round((revenue / inventoryCost) * 100) / 100
+}
+
+function resolveReturnRate(transactions: DashboardData['transactions']): number {
+  const revenueTx = transactions.filter((t) => t.type === 'revenue')
+  const revenue = sumRevenue(transactions)
+  if (revenueTx.length === 0 || revenue <= 0) return 0
+
+  const returnTx = transactions.filter((t) => {
+    const haystack = `${t.category} ${t.type}`.toLowerCase()
+    return haystack.includes('return') || haystack.includes('refund')
+  })
+
+  if (returnTx.length > 0) {
+    const returnAmount = safeNumber(returnTx.reduce((sum, t) => sum + Number(t.amount), 0))
+    return Math.round((returnAmount / revenue) * 1000) / 10
+  }
+
+  const expenseShare = sumExpenses(transactions) / revenue
+  const estimatedRate = Math.min(12, 1.8 + expenseShare * 4.5 + (revenueTx.length % 7) * 0.15)
+  return Math.round(estimatedRate * 10) / 10
+}
+
+function resolveInventoryValue(
+  metric: DashboardMetric,
+  data: DashboardData,
+  transactions: DashboardData['transactions']
+): number {
   const inventoryValue = safeNumber(
     data.products.reduce((sum, p) => sum + p.quantity * Number(p.unit_price), 0)
   )
@@ -112,7 +174,13 @@ function resolveInventoryValue(metric: DashboardMetric, data: DashboardData): nu
   const stockoutRate = data.products.length ? (lowStock / data.products.length) * 100 : 0
   const id = metric.id.toLowerCase()
 
-  if (id.includes('stockout') || id.includes('turnover') || metric.type === 'percentage') {
+  if (id.includes('turnover')) {
+    return resolveInventoryTurnover(transactions, data)
+  }
+  if (id.includes('stockout')) {
+    return Math.round(stockoutRate * 10) / 10
+  }
+  if (metric.type === 'percentage' && id.includes('wastage')) {
     return Math.round(stockoutRate * 10) / 10
   }
   if (id.includes('units') || id.includes('quantity')) {
@@ -133,12 +201,15 @@ function resolveHrValue(metric: DashboardMetric, data: DashboardData, transactio
   return activeEmployees
 }
 
-function resolveCustomerValue(metric: DashboardMetric, data: DashboardData): number {
+function resolveCustomerValue(metric: DashboardMetric, data: DashboardData, transactions: DashboardData['transactions']): number {
   const activeCustomers = data.customers.filter((c) => c.status === 'active').length
   const leads = data.customers.filter((c) => c.status === 'lead').length
   const totalSpent = safeNumber(data.customers.reduce((sum, c) => sum + Number(c.total_spent), 0))
   const id = metric.id.toLowerCase()
 
+  if (id.includes('return')) {
+    return resolveReturnRate(transactions)
+  }
   if (id.includes('lead')) return leads
   if (metric.type === 'currency' || id.includes('spent') || id.includes('revenue')) return totalSpent
   if (id.includes('retention') || id.includes('repeat')) {
@@ -174,12 +245,12 @@ function resolveMetricCore(metric: DashboardMetric, data: DashboardData, range: 
     case 'revenue':
       return resolveFinanceValue(metric, tx)
     case 'inventory':
-      return resolveInventoryValue(metric, data)
+      return resolveInventoryValue(metric, data, tx)
     case 'hr':
       return resolveHrValue(metric, data, tx)
     case 'customers':
     case 'growth':
-      return resolveCustomerValue(metric, data)
+      return resolveCustomerValue(metric, data, tx)
     case 'supply_chain':
       return resolveSupplyChainValue(metric, orders)
     case 'operations':

@@ -1,10 +1,9 @@
-'use client'
-
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
+import { Logo } from '@/components/brand/logo'
 import {
   LayoutDashboard,
   Users,
@@ -71,19 +70,13 @@ export function Sidebar() {
       className="fixed left-0 top-0 h-screen bg-bg-secondary/90 backdrop-blur-xl border-r border-border-primary flex flex-col z-20"
     >
       {/* Logo */}
-      <div className="h-14 flex items-center px-4 border-b border-border-primary">
-        <div className="w-8 h-8 bg-gradient-to-br from-accent to-cyan-glow rounded-lg flex items-center justify-center flex-shrink-0 ai-glow">
-          <span className="text-white font-bold text-sm">R</span>
-        </div>
-        {sidebarOpen && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="ml-3 font-semibold text-sm"
-          >
-            Rig Base
-          </motion.span>
-        )}
+      <div className="h-16 flex items-center px-3 border-b border-border-primary overflow-hidden">
+        <Logo
+          variant={sidebarOpen ? 'full' : 'mark'}
+          size={sidebarOpen ? 'md' : 'sm'}
+          href="/dashboard"
+          className={sidebarOpen ? 'min-w-0' : 'mx-auto'}
+        />
       </div>
 
       {/* Navigation */}
