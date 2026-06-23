@@ -1,15 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Modal } from '@/components/ui/modal'
-import { DataTable } from '@/components/ui/data-table'
+import { FilterableDataTable } from '@/components/ui/filterable-data-table'
 import { Package, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Product } from '@/lib/types'
+import { ModuleImport } from '@/components/import/module-import'
 
 export default function InventoryPage() {
   const [showAdd, setShowAdd] = useState(false)
@@ -45,6 +46,29 @@ export default function InventoryPage() {
     },
     onError: () => toast.error('Failed to add product'),
   })
+
+  const inventoryFilters = useMemo(() => {
+    const categories = workspace?.product_categories?.length
+      ? workspace.product_categories
+      : [...new Set(products.map((p) => p.category))]
+
+    return [
+      {
+        id: 'category',
+        label: 'Category',
+        options: categories.map((c) => ({ value: c, label: c })),
+      },
+      {
+        id: 'status',
+        label: 'Status',
+        options: [
+          { value: 'in_stock', label: 'In stock' },
+          { value: 'low_stock', label: 'Low stock' },
+          { value: 'out_of_stock', label: 'Out of stock' },
+        ],
+      },
+    ]
+  }, [workspace?.product_categories, products])
 
   const columns = [
     { key: 'name', header: 'Product' },
@@ -88,31 +112,17 @@ export default function InventoryPage() {
             Track products, stock levels, and categories
           </p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-        >
-          <Plus size={16} />
-          Add Product
-        </button>
-      </div>
-
-      {/* Category filters */}
-      {workspace?.product_categories && workspace.product_categories.length > 0 && (
-        <div className="flex gap-2 mb-6 flex-wrap">
-          <span className="px-3 py-1.5 text-xs font-medium bg-accent/10 text-accent border border-accent/20 rounded-lg">
-            All ({products.length})
-          </span>
-          {workspace.product_categories.map((cat) => (
-            <span
-              key={cat}
-              className="px-3 py-1.5 text-xs font-medium text-text-secondary bg-bg-secondary/90 border border-border-primary rounded-lg"
-            >
-              {cat} ({products.filter((p) => p.category === cat).length})
-            </span>
-          ))}
+        <div className="flex items-center gap-3">
+          <ModuleImport module="inventory" entity="products" />
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
+          >
+            <Plus size={16} />
+            Add Product
+          </button>
         </div>
-      )}
+      </div>
 
       {products.length === 0 ? (
         <EmptyState
@@ -122,7 +132,16 @@ export default function InventoryPage() {
           action={{ label: 'Add first product', onClick: () => setShowAdd(true) }}
         />
       ) : (
-        <DataTable columns={columns} data={products} />
+        <FilterableDataTable
+          columns={columns}
+          data={products}
+          searchPlaceholder="Search by product name or SKU…"
+          searchKeys={['name', 'sku', 'category']}
+          filters={inventoryFilters}
+          pageSize={10}
+          rowKey={(item) => item.id}
+          emptyFilteredMessage="No products match your search or filters."
+        />
       )}
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Product">

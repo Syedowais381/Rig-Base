@@ -1,20 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Modal } from '@/components/ui/modal'
-import { DataTable } from '@/components/ui/data-table'
+import { FilterableDataTable } from '@/components/ui/filterable-data-table'
+import { matchesSearch } from '@/hooks/use-table-controls'
 import { DollarSign, Plus, TrendingUp, TrendingDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import type { Transaction } from '@/lib/types'
+import { ModuleImport } from '@/components/import/module-import'
 
 export default function FinancePage() {
   const [showAdd, setShowAdd] = useState(false)
-  const [filterType, setFilterType] = useState<'all' | 'revenue' | 'expense'>('all')
   const { workspace } = useWorkspaceStore()
   const supabase = createClient()
   const queryClient = useQueryClient()
@@ -48,9 +49,41 @@ export default function FinancePage() {
     onError: () => toast.error('Failed to add transaction'),
   })
 
-  const filtered = filterType === 'all'
-    ? transactions
-    : transactions.filter((t) => t.type === filterType)
+  const financeFilters = useMemo(() => {
+    const categories = [
+      ...new Set([
+        ...(workspace?.departments ?? []),
+        ...transactions.map((t) => t.category),
+      ]),
+    ].filter(Boolean)
+
+    return [
+      {
+        id: 'type',
+        label: 'Type',
+        options: [
+          { value: 'revenue', label: 'Revenue' },
+          { value: 'expense', label: 'Expense' },
+        ],
+      },
+      {
+        id: 'category',
+        label: 'Category',
+        options: categories.map((c) => ({ value: c, label: c })),
+      },
+    ]
+  }, [workspace?.departments, transactions])
+
+  const filterTransactions = useCallback(
+    (transaction: Transaction, ctx: { search: string; filters: Record<string, string> }) => {
+      const haystack = [transaction.description, transaction.category, transaction.reference, transaction.type].join(' ')
+      if (!matchesSearch(haystack, ctx.search)) return false
+      if (ctx.filters.type !== 'all' && transaction.type !== ctx.filters.type) return false
+      if (ctx.filters.category !== 'all' && transaction.category !== ctx.filters.category) return false
+      return true
+    },
+    []
+  )
 
   const totalRevenue = transactions
     .filter((t) => t.type === 'revenue')
@@ -96,13 +129,16 @@ export default function FinancePage() {
             Track revenue, expenses, and cash flow
           </p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-        >
-          <Plus size={16} />
-          Add Transaction
-        </button>
+        <div className="flex items-center gap-3">
+          <ModuleImport module="finance" entity="transactions" />
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
+          >
+            <Plus size={16} />
+            Add Transaction
+          </button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -137,21 +173,6 @@ export default function FinancePage() {
         </motion.div>
       </div>
 
-      {/* Filter */}
-      <div className="flex gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg w-fit mb-6">
-        {(['all', 'revenue', 'expense'] as const).map((type) => (
-          <button
-            key={type}
-            onClick={() => setFilterType(type)}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors capitalize ${
-              filterType === type ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
-            }`}
-          >
-            {type}
-          </button>
-        ))}
-      </div>
-
       {transactions.length === 0 ? (
         <EmptyState
           icon={DollarSign}
@@ -160,7 +181,16 @@ export default function FinancePage() {
           action={{ label: 'Add first transaction', onClick: () => setShowAdd(true) }}
         />
       ) : (
-        <DataTable columns={columns} data={filtered} />
+        <FilterableDataTable
+          columns={columns}
+          data={transactions}
+          searchPlaceholder="Search description, category, or reference…"
+          filters={financeFilters}
+          customFilter={filterTransactions}
+          pageSize={10}
+          rowKey={(item) => item.id}
+          emptyFilteredMessage="No transactions match your search or filters."
+        />
       )}
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Transaction">

@@ -15,7 +15,7 @@ export function TimeFilter() {
   const { timePeriod, setTimePeriod } = useWorkspaceStore()
 
   return (
-    <div className="flex items-center gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg">
+    <div className="flex flex-wrap items-center gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg max-w-full">
       {periods.map((period) => (
         <button
           key={period.value}

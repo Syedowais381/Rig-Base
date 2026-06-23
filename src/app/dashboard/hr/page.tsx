@@ -1,16 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Modal } from '@/components/ui/modal'
-import { DataTable } from '@/components/ui/data-table'
+import { FilterableDataTable } from '@/components/ui/filterable-data-table'
+import { TablePagination } from '@/components/ui/table-pagination'
+import { TableToolbar } from '@/components/ui/table-toolbar'
+import { matchesSearch, useTableControls } from '@/hooks/use-table-controls'
 import { Users, Plus, UserPlus, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import type { Employee, Role } from '@/lib/types'
+import { ModuleImport } from '@/components/import/module-import'
 
 export default function HRPage() {
   const [showAddEmployee, setShowAddEmployee] = useState(false)
@@ -60,9 +64,61 @@ export default function HRPage() {
     onError: () => toast.error('Failed to add employee'),
   })
 
+  const employeeFilters = useMemo(
+    () => [
+      {
+        id: 'department',
+        label: 'Department',
+        options: (workspace?.departments ?? []).map((d) => ({ value: d, label: d })),
+      },
+      {
+        id: 'status',
+        label: 'Status',
+        options: [
+          { value: 'active', label: 'Active' },
+          { value: 'inactive', label: 'Inactive' },
+          { value: 'on_leave', label: 'On leave' },
+        ],
+      },
+      {
+        id: 'role',
+        label: 'Role',
+        options: roles.map((r) => ({ value: r.id, label: r.name })),
+      },
+    ],
+    [workspace?.departments, roles]
+  )
+
+  const filterEmployees = useCallback(
+    (employee: Employee, ctx: { search: string; filters: Record<string, string> }) => {
+      const roleName = roles.find((r) => r.id === employee.role_id)?.name ?? ''
+      const haystack = [employee.full_name, employee.email, employee.phone, employee.department, roleName].join(' ')
+      if (!matchesSearch(haystack, ctx.search)) return false
+      if (ctx.filters.department !== 'all' && employee.department !== ctx.filters.department) return false
+      if (ctx.filters.status !== 'all' && employee.status !== ctx.filters.status) return false
+      if (ctx.filters.role !== 'all' && employee.role_id !== ctx.filters.role) return false
+      return true
+    },
+    [roles]
+  )
+
+  const rolesControls = useTableControls(roles, {
+    pageSize: 9,
+    filterFn: (role, ctx) =>
+      matchesSearch(
+        [role.name, ...Object.entries(role.permissions).filter(([, v]) => v).map(([p]) => p)].join(' '),
+        ctx.search
+      ),
+  })
+
   const employeeColumns = [
     { key: 'full_name', header: 'Name' },
     { key: 'email', header: 'Email' },
+    {
+      key: 'role_id',
+      header: 'Role',
+      render: (item: Employee) => roles.find((r) => r.id === item.role_id)?.name ?? '—',
+    },
     { key: 'department', header: 'Department' },
     {
       key: 'status',
@@ -89,13 +145,16 @@ export default function HRPage() {
             Manage your team, roles, and attendance
           </p>
         </div>
-        <button
-          onClick={() => setShowAddEmployee(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-        >
-          <Plus size={16} />
-          Add Employee
-        </button>
+        <div className="flex items-center gap-3">
+          <ModuleImport module="hr" entity="employees" />
+          <button
+            onClick={() => setShowAddEmployee(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
+          >
+            <Plus size={16} />
+            Add Employee
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -130,41 +189,87 @@ export default function HRPage() {
               action={{ label: 'Add first employee', onClick: () => setShowAddEmployee(true) }}
             />
           ) : (
-            <DataTable columns={employeeColumns} data={employees} />
+            <FilterableDataTable
+              columns={employeeColumns}
+              data={employees}
+              searchPlaceholder="Search by name, email, department, or role…"
+              filters={employeeFilters}
+              customFilter={filterEmployees}
+              pageSize={10}
+              rowKey={(item) => item.id}
+              emptyFilteredMessage="No employees match your search or filters."
+            />
           )}
         </>
       )}
 
       {activeTab === 'roles' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {roles.map((role) => (
-            <motion.div
-              key={role.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="ai-card border border-border-primary rounded-xl p-5"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-accent-muted rounded-lg flex items-center justify-center">
-                  <Shield size={16} className="text-accent" />
+        <>
+          {roles.length === 0 ? (
+            <EmptyState
+              icon={Shield}
+              title="No roles yet"
+              description="Roles are created during workspace setup. Complete onboarding or add roles to assign permissions."
+            />
+          ) : (
+            <>
+              <TableToolbar
+                search={rolesControls.search}
+                onSearchChange={rolesControls.setSearch}
+                searchPlaceholder="Search roles or permissions…"
+                onClear={rolesControls.clearFilters}
+                hasActiveFilters={rolesControls.hasActiveFilters}
+                filteredCount={rolesControls.filteredCount}
+                totalCount={rolesControls.totalCount}
+              />
+              {rolesControls.filteredCount === 0 ? (
+                <div className="ai-card border border-border-primary rounded-xl px-6 py-12 text-center text-sm text-text-secondary">
+                  No roles match your search.
                 </div>
-                <h3 className="font-medium">{role.name}</h3>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {Object.entries(role.permissions)
-                  .filter(([, v]) => v)
-                  .map(([perm]) => (
-                    <span
-                      key={perm}
-                      className="px-2 py-0.5 text-xs bg-bg-tertiary border border-border-primary rounded-md text-text-secondary"
-                    >
-                      {perm.replace(/_/g, ' ')}
-                    </span>
-                  ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {rolesControls.paginatedData.map((role) => (
+                      <motion.div
+                        key={role.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="ai-card border border-border-primary rounded-xl p-5"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-accent-muted rounded-lg flex items-center justify-center">
+                            <Shield size={16} className="text-accent" />
+                          </div>
+                          <h3 className="font-medium">{role.name}</h3>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {Object.entries(role.permissions)
+                            .filter(([, v]) => v)
+                            .map(([perm]) => (
+                              <span
+                                key={perm}
+                                className="px-2 py-0.5 text-xs bg-bg-tertiary border border-border-primary rounded-md text-text-secondary"
+                              >
+                                {perm.replace(/_/g, ' ')}
+                              </span>
+                            ))}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <TablePagination
+                    page={rolesControls.page}
+                    totalPages={rolesControls.totalPages}
+                    rangeStart={rolesControls.rangeStart}
+                    rangeEnd={rolesControls.rangeEnd}
+                    filteredCount={rolesControls.filteredCount}
+                    onPageChange={rolesControls.setPage}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </>
       )}
 
       {/* Add Employee Modal */}

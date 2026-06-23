@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Modal } from '@/components/ui/modal'
-import { DataTable } from '@/components/ui/data-table'
+import { FilterableDataTable } from '@/components/ui/filterable-data-table'
+import { matchesSearch } from '@/hooks/use-table-controls'
 import { Truck, Plus, Building2, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Supplier, PurchaseOrder } from '@/lib/types'
+import { ModuleImport } from '@/components/import/module-import'
 
 export default function SupplyChainPage() {
   const [showAddSupplier, setShowAddSupplier] = useState(false)
@@ -77,6 +79,54 @@ export default function SupplyChainPage() {
     onError: () => toast.error('Failed to create purchase order'),
   })
 
+  const supplierFilters = useMemo(
+    () => [
+      {
+        id: 'status',
+        label: 'Status',
+        options: [
+          { value: 'active', label: 'Active' },
+          { value: 'inactive', label: 'Inactive' },
+        ],
+      },
+    ],
+    []
+  )
+
+  const orderFilters = useMemo(
+    () => [
+      {
+        id: 'status',
+        label: 'Status',
+        options: [
+          { value: 'pending', label: 'Pending' },
+          { value: 'approved', label: 'Approved' },
+          { value: 'shipped', label: 'Shipped' },
+          { value: 'delivered', label: 'Delivered' },
+          { value: 'cancelled', label: 'Cancelled' },
+        ],
+      },
+      {
+        id: 'supplier_id',
+        label: 'Supplier',
+        options: suppliers.map((s) => ({ value: s.id, label: s.name })),
+      },
+    ],
+    [suppliers]
+  )
+
+  const filterOrders = useCallback(
+    (order: PurchaseOrder, ctx: { search: string; filters: Record<string, string> }) => {
+      const supplierName = suppliers.find((s) => s.id === order.supplier_id)?.name ?? ''
+      const haystack = [order.order_number, supplierName, order.status, order.order_date].join(' ')
+      if (!matchesSearch(haystack, ctx.search)) return false
+      if (ctx.filters.status !== 'all' && order.status !== ctx.filters.status) return false
+      if (ctx.filters.supplier_id !== 'all' && order.supplier_id !== ctx.filters.supplier_id) return false
+      return true
+    },
+    [suppliers]
+  )
+
   const supplierColumns = [
     { key: 'name', header: 'Company' },
     { key: 'contact_person', header: 'Contact' },
@@ -133,13 +183,20 @@ export default function SupplyChainPage() {
             Manage suppliers and purchase orders
           </p>
         </div>
-        <button
-          onClick={() => activeTab === 'suppliers' ? setShowAddSupplier(true) : setShowAddPO(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-        >
-          <Plus size={16} />
-          {activeTab === 'suppliers' ? 'Add Supplier' : 'New Order'}
-        </button>
+        <div className="flex items-center gap-3">
+          <ModuleImport
+            module="supply_chain"
+            entity={activeTab === 'suppliers' ? 'suppliers' : 'purchase_orders'}
+            label={activeTab === 'suppliers' ? 'Import suppliers' : 'Import orders'}
+          />
+          <button
+            onClick={() => activeTab === 'suppliers' ? setShowAddSupplier(true) : setShowAddPO(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
+          >
+            <Plus size={16} />
+            {activeTab === 'suppliers' ? 'Add Supplier' : 'New Order'}
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg w-fit mb-6">
@@ -172,7 +229,16 @@ export default function SupplyChainPage() {
             action={{ label: 'Add first supplier', onClick: () => setShowAddSupplier(true) }}
           />
         ) : (
-          <DataTable columns={supplierColumns} data={suppliers} />
+          <FilterableDataTable
+            columns={supplierColumns}
+            data={suppliers}
+            searchPlaceholder="Search company, contact, email, or phone…"
+            searchKeys={['name', 'contact_person', 'email', 'phone', 'address']}
+            filters={supplierFilters}
+            pageSize={10}
+            rowKey={(item) => item.id}
+            emptyFilteredMessage="No suppliers match your search or filters."
+          />
         )
       )}
 
@@ -188,7 +254,16 @@ export default function SupplyChainPage() {
             action={suppliers.length > 0 ? { label: 'Create first order', onClick: () => setShowAddPO(true) } : undefined}
           />
         ) : (
-          <DataTable columns={poColumns} data={purchaseOrders} />
+          <FilterableDataTable
+            columns={poColumns}
+            data={purchaseOrders}
+            searchPlaceholder="Search order number or supplier…"
+            filters={orderFilters}
+            customFilter={filterOrders}
+            pageSize={10}
+            rowKey={(item) => item.id}
+            emptyFilteredMessage="No purchase orders match your search or filters."
+          />
         )
       )}
 

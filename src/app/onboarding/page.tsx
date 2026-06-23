@@ -47,6 +47,8 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<OnboardingFormInput>(EMPTY_ONBOARDING_FORM)
   const [departmentInput, setDepartmentInput] = useState('')
+  const [productCategoriesInput, setProductCategoriesInput] = useState('')
+  const [serviceTypesInput, setServiceTypesInput] = useState('')
   const [initialLoading, setInitialLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
@@ -81,6 +83,8 @@ export default function OnboardingPage() {
                 ? parsed.departments
                 : [...DEFAULT_DEPARTMENTS_BY_INDUSTRY[parsed.industry ?? 'retail']],
           })
+          setProductCategoriesInput(joinTags(parsed.product_categories ?? []))
+          setServiceTypesInput(joinTags(parsed.service_types ?? []))
         } else {
           setForm((prev) => ({
             ...prev,
@@ -110,8 +114,27 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (initialLoading) return
-    localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(form))
-  }, [form, initialLoading])
+    localStorage.setItem(
+      FORM_DRAFT_KEY,
+      JSON.stringify({
+        ...form,
+        product_categories: parseTags(productCategoriesInput),
+        service_types: parseTags(serviceTypesInput),
+      })
+    )
+  }, [form, productCategoriesInput, serviceTypesInput, initialLoading])
+
+  function withParsedOfferings(data: OnboardingFormInput = form): OnboardingFormInput {
+    return {
+      ...data,
+      product_categories: parseTags(productCategoriesInput),
+      service_types: parseTags(serviceTypesInput),
+    }
+  }
+
+  function syncOfferingsToForm() {
+    setForm((prev) => withParsedOfferings(prev))
+  }
 
   const progress = useMemo(() => Math.round(((step + 1) / STEPS.length) * 100), [step])
 
@@ -176,7 +199,7 @@ export default function OnboardingPage() {
     )
   }
 
-  function validateStep(currentStep: number): string | null {
+  function validateStep(currentStep: number, data: OnboardingFormInput = form): string | null {
     if (currentStep === 0) {
       if (form.business_name.trim().length < 2) return 'Enter your business name.'
       if (form.industry === 'other' && (!form.industry_other || form.industry_other.trim().length < 2)) {
@@ -192,14 +215,14 @@ export default function OnboardingPage() {
     }
 
     if (currentStep === 2) {
-      if (!form.sells_products && !form.sells_services) return 'Select products, services, or both.'
-      if (form.sells_products && form.product_categories.length < 1) return 'Add at least one product category.'
-      if (form.sells_services && form.service_types.length < 1) return 'Add at least one service type.'
+      if (!data.sells_products && !data.sells_services) return 'Select products, services, or both.'
+      if (data.sells_products && data.product_categories.length < 1) return 'Add at least one product category.'
+      if (data.sells_services && data.service_types.length < 1) return 'Add at least one service type.'
       return null
     }
 
     if (currentStep === 3) {
-      if (form.focus_areas.length < 1) return 'Select at least one business priority.'
+      if (data.focus_areas.length < 1) return 'Select at least one business priority.'
       return null
     }
 
@@ -207,7 +230,10 @@ export default function OnboardingPage() {
   }
 
   function goNext() {
-    const error = validateStep(step)
+    const nextForm = step === 2 ? withParsedOfferings() : form
+    if (step === 2) setForm(nextForm)
+
+    const error = validateStep(step, nextForm)
     if (error) {
       toast.error(error)
       return
@@ -220,8 +246,11 @@ export default function OnboardingPage() {
   }
 
   async function handleSubmit() {
+    const submissionForm = withParsedOfferings()
+    setForm(submissionForm)
+
     for (let i = 0; i < STEPS.length; i++) {
-      const error = validateStep(i)
+      const error = validateStep(i, submissionForm)
       if (error) {
         toast.error(error)
         setStep(i)
@@ -234,7 +263,7 @@ export default function OnboardingPage() {
       const response = await fetch('/api/onboarding/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submissionForm),
       })
 
       const payload = await response.json()
@@ -524,8 +553,9 @@ export default function OnboardingPage() {
                   <label className={labelClass}>Product categories</label>
                   <textarea
                     className={`${inputClass} min-h-[96px]`}
-                    value={joinTags(form.product_categories)}
-                    onChange={(e) => updateForm('product_categories', parseTags(e.target.value))}
+                    value={productCategoriesInput}
+                    onChange={(e) => setProductCategoriesInput(e.target.value)}
+                    onBlur={syncOfferingsToForm}
                     placeholder="Apparel, Electronics, Accessories"
                   />
                   <p className="text-xs text-text-tertiary mt-1">Separate categories with commas.</p>
@@ -537,8 +567,9 @@ export default function OnboardingPage() {
                   <label className={labelClass}>Service types</label>
                   <textarea
                     className={`${inputClass} min-h-[96px]`}
-                    value={joinTags(form.service_types)}
-                    onChange={(e) => updateForm('service_types', parseTags(e.target.value))}
+                    value={serviceTypesInput}
+                    onChange={(e) => setServiceTypesInput(e.target.value)}
+                    onBlur={syncOfferingsToForm}
                     placeholder="Consulting, Installation, Support"
                   />
                   <p className="text-xs text-text-tertiary mt-1">Separate service types with commas.</p>

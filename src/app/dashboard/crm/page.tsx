@@ -1,19 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Modal } from '@/components/ui/modal'
-import { DataTable } from '@/components/ui/data-table'
+import { FilterableDataTable } from '@/components/ui/filterable-data-table'
 import { UserCircle, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Customer } from '@/lib/types'
+import { ModuleImport } from '@/components/import/module-import'
 
 export default function CRMPage() {
   const [showAdd, setShowAdd] = useState(false)
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'lead'>('all')
   const { workspace } = useWorkspaceStore()
   const supabase = createClient()
   const queryClient = useQueryClient()
@@ -47,9 +47,20 @@ export default function CRMPage() {
     onError: () => toast.error('Failed to add customer'),
   })
 
-  const filtered = filterStatus === 'all'
-    ? customers
-    : customers.filter((c) => c.status === filterStatus)
+  const crmFilters = useMemo(
+    () => [
+      {
+        id: 'status',
+        label: 'Status',
+        options: [
+          { value: 'active', label: 'Active' },
+          { value: 'lead', label: 'Lead' },
+          { value: 'inactive', label: 'Inactive' },
+        ],
+      },
+    ],
+    []
+  )
 
   const columns = [
     { key: 'name', header: 'Name' },
@@ -84,28 +95,16 @@ export default function CRMPage() {
             Manage customer relationships and track interactions
           </p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-        >
-          <Plus size={16} />
-          Add Customer
-        </button>
-      </div>
-
-      {/* Filter */}
-      <div className="flex gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg w-fit mb-6">
-        {(['all', 'active', 'lead', 'inactive'] as const).map((status) => (
+        <div className="flex items-center gap-3">
+          <ModuleImport module="crm" entity="customers" />
           <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors capitalize ${
-              filterStatus === status ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white' : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/70'
-            }`}
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
           >
-            {status}
+            <Plus size={16} />
+            Add Customer
           </button>
-        ))}
+        </div>
       </div>
 
       {customers.length === 0 ? (
@@ -116,7 +115,16 @@ export default function CRMPage() {
           action={{ label: 'Add first customer', onClick: () => setShowAdd(true) }}
         />
       ) : (
-        <DataTable columns={columns} data={filtered} />
+        <FilterableDataTable
+          columns={columns}
+          data={customers}
+          searchPlaceholder="Search by name, email, company, or phone…"
+          searchKeys={['name', 'email', 'company', 'phone']}
+          filters={crmFilters}
+          pageSize={10}
+          rowKey={(item) => item.id}
+          emptyFilteredMessage="No customers match your search or filters."
+        />
       )}
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Customer">

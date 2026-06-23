@@ -3,14 +3,45 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export const geminiModel = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash',
+  model: 'gemini-2.5-flash-lite',
 })
 
-export const onboardingModelFallbacks = [
+/** Ordered by reliability on the free tier; avoid deprecated 1.5 model names. */
+export const geminiModelFallbacks = [
+  'gemini-2.5-flash-lite',
+  'gemini-flash-lite-latest',
   'gemini-2.5-flash',
+  'gemini-2.0-flash-lite',
   'gemini-2.0-flash',
-  'gemini-1.5-flash',
 ]
+
+export const onboardingModelFallbacks = geminiModelFallbacks
+
+export async function generateGeminiText(
+  prompt: string,
+  options?: { json?: boolean; temperature?: number }
+): Promise<string> {
+  let lastError: unknown
+
+  for (const modelName of geminiModelFallbacks) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          ...(options?.json ? { responseMimeType: 'application/json' } : {}),
+          temperature: options?.temperature ?? 0.4,
+        },
+      })
+      const result = await model.generateContent(prompt)
+      return result.response.text()
+    } catch (error) {
+      lastError = error
+      console.warn(`Gemini model ${modelName} failed`, error)
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('All Gemini models failed')
+}
 
 export type ChatMessage = {
   role: 'user' | 'model'
