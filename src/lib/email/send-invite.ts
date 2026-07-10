@@ -8,18 +8,38 @@ type SendInviteEmailInput = {
   inviteUrl: string
 }
 
+function normalizeAppPassword(pass: string): string {
+  return pass.replace(/\s+/g, '')
+}
+
 function getTransport() {
-  const user = process.env.GMAIL_USER
+  const user = process.env.GMAIL_USER?.trim()
   const pass = process.env.GMAIL_APP_PASSWORD
+    ? normalizeAppPassword(process.env.GMAIL_APP_PASSWORD)
+    : undefined
 
   if (!user || !pass) {
     return null
   }
 
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: { user, pass },
   })
+}
+
+export function formatEmailError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error)
+  if (message.includes('535') || message.includes('BadCredentials')) {
+    return [
+      'Gmail rejected the login.',
+      'Use the same email for GMAIL_USER and GMAIL_FROM, enable 2-Step Verification,',
+      'and create a Google App Password (not your normal Gmail password).',
+    ].join(' ')
+  }
+  return message
 }
 
 export function isEmailConfigured(): boolean {

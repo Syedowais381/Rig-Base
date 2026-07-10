@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { appBaseUrl } from '@/lib/api/workspace-context'
-import { sendInviteEmail, isEmailConfigured } from '@/lib/email/send-invite'
+import { sendInviteEmail, isEmailConfigured, formatEmailError } from '@/lib/email/send-invite'
 import { resolveServerPermissions, userCan } from '@/lib/rbac/server-permissions'
 import { NextResponse } from 'next/server'
 
@@ -95,7 +95,7 @@ export async function POST(_request: Request, context: RouteContext) {
       })
       emailSent = true
     } catch (err) {
-      emailError = err instanceof Error ? err.message : 'Failed to send email'
+      emailError = formatEmailError(err)
     }
   } else {
     emailError = 'Gmail is not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.'
