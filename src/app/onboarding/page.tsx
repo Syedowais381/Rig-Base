@@ -297,7 +297,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_8%,#3d8bff29_0%,transparent_36%),radial-gradient(circle_at_80%_88%,#836dff1f_0%,transparent_35%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_8%,#c5a05914_0%,transparent_36%)]" />
 
       <header className="border-b border-border-primary bg-bg-primary/70 backdrop-blur-xl sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -313,7 +313,7 @@ export default function OnboardingPage() {
         <div className="max-w-3xl mx-auto px-6 pb-4">
           <div className="h-2 rounded-full bg-bg-tertiary border border-border-primary overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-accent via-cyan-glow to-purple-energy"
+              className="h-full bg-accent"
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.3 }}
             />
@@ -655,7 +655,7 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={goNext}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-accent to-[#3172ff] hover:to-[#4990ff] ai-glow"
+                className="btn-primary"
               >
                 Continue
                 <ArrowRight size={16} />
@@ -665,7 +665,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={() => void handleSubmit()}
                 disabled={submitting}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-accent to-[#3172ff] hover:to-[#4990ff] disabled:opacity-50 ai-glow"
+                className="btn-primary disabled:opacity-50"
               >
                 {submitting && <Loader2 size={16} className="animate-spin" />}
                 Create my workspace

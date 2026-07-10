@@ -1,28 +1,8 @@
 import type { OnboardingConfig } from '@/lib/onboarding-config'
 import type { BusinessIndustry, OnboardingFormInput } from '@/lib/onboarding-form'
+import { buildUniversalRoles } from '@/lib/rbac/permissions'
 
 type MetricTemplate = OnboardingConfig['dashboard_metrics'][number]
-
-const ALL_PERMISSIONS = [
-  'dashboard_view',
-  'dashboard_edit',
-  'dashboard_admin',
-  'finance_view',
-  'finance_edit',
-  'finance_admin',
-  'inventory_view',
-  'inventory_edit',
-  'inventory_admin',
-  'hr_view',
-  'hr_edit',
-  'hr_admin',
-  'crm_view',
-  'crm_edit',
-  'crm_admin',
-  'supply_chain_view',
-  'supply_chain_edit',
-  'supply_chain_admin',
-] as const
 
 const INDUSTRY_LABELS: Record<BusinessIndustry, string> = {
   restaurant: 'Restaurant',
@@ -157,44 +137,8 @@ function resolveModules(form: OnboardingFormInput): OnboardingConfig['modules'] 
   return modules
 }
 
-function modulePermissions(prefix: string): string[] {
-  return [`${prefix}_view`, `${prefix}_edit`, `${prefix}_admin`]
-}
-
 function buildRoles(form: OnboardingFormInput, modules: OnboardingConfig['modules']): OnboardingConfig['roles'] {
-  const roles: OnboardingConfig['roles'] = [{ name: 'Owner', permissions: [...ALL_PERMISSIONS] }]
-
-  const managerPermissions = ['dashboard_view', 'dashboard_edit', 'finance_view']
-  if (modules.hr) managerPermissions.push('hr_view', 'hr_edit')
-  if (modules.inventory) managerPermissions.push('inventory_view', 'inventory_edit')
-  if (modules.crm) managerPermissions.push('crm_view', 'crm_edit')
-  if (modules.supply_chain) managerPermissions.push('supply_chain_view', 'supply_chain_edit')
-
-  if (form.team_size !== '1-5') {
-    roles.push({ name: 'Operations Manager', permissions: managerPermissions })
-  }
-
-  if (modules.finance) {
-    roles.push({ name: 'Finance Lead', permissions: ['dashboard_view', ...modulePermissions('finance')] })
-  }
-
-  if (modules.hr && form.team_size !== '1-5') {
-    roles.push({ name: 'HR Coordinator', permissions: ['dashboard_view', ...modulePermissions('hr')] })
-  }
-
-  if (modules.inventory) {
-    roles.push({ name: 'Inventory Manager', permissions: ['dashboard_view', ...modulePermissions('inventory')] })
-  }
-
-  if (modules.crm && form.business_model !== 'b2b') {
-    roles.push({ name: 'Customer Success', permissions: ['dashboard_view', ...modulePermissions('crm')] })
-  }
-
-  if (modules.supply_chain) {
-    roles.push({ name: 'Procurement Lead', permissions: ['dashboard_view', ...modulePermissions('supply_chain')] })
-  }
-
-  return roles
+  return buildUniversalRoles(modules)
 }
 
 function buildChecklist(form: OnboardingFormInput, modules: OnboardingConfig['modules']): OnboardingConfig['setup_checklist'] {

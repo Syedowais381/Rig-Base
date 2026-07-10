@@ -5,7 +5,17 @@ import { generateImportSchema } from '@/lib/import/schema-generator'
 import { isImportEntity, isImportModule, isValidImportTarget } from '@/lib/import/types'
 import { validateImportRows } from '@/lib/import/validate'
 import { loadWorkspaceImportContext } from '@/lib/import/workspace-context'
+import { requirePermission } from '@/lib/api/workspace-context'
+import type { ModuleKey } from '@/lib/rbac/types'
 import { NextResponse } from 'next/server'
+
+const IMPORT_MODULE_MAP: Record<string, ModuleKey> = {
+  hr: 'hr',
+  inventory: 'inventory',
+  finance: 'finance',
+  supply_chain: 'supply_chain',
+  crm: 'crm',
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -42,6 +52,14 @@ export async function POST(request: Request) {
   const ctx = await loadWorkspaceImportContext(supabase, user.id)
   if (!ctx) {
     return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
+  }
+
+  const moduleKey = IMPORT_MODULE_MAP[moduleParam]
+  if (moduleKey) {
+    const perm = await requirePermission(supabase, user.id, moduleKey, 'import')
+    if ('error' in perm) {
+      return NextResponse.json({ error: perm.error }, { status: perm.status })
+    }
   }
 
   // Refresh supplier map for PO imports

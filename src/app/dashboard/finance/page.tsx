@@ -1,22 +1,30 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Modal } from '@/components/ui/modal'
+import { ConfirmDeleteModal } from '@/components/ui/confirm-delete-modal'
 import { FilterableDataTable } from '@/components/ui/filterable-data-table'
+import { RowActions, actionsColumn } from '@/components/ui/row-actions'
 import { matchesSearch } from '@/hooks/use-table-controls'
 import { DollarSign, Plus, TrendingUp, TrendingDown } from 'lucide-react'
 import { toast } from 'sonner'
-import { motion } from 'framer-motion'
 import type { Transaction } from '@/lib/types'
 import { ModuleImport } from '@/components/import/module-import'
+import { StatMoney } from '@/components/ui/stat-money'
+import { ModuleAccessGuard } from '@/components/rbac/module-access-guard'
+import { PermissionGate } from '@/components/rbac/permission-gate'
+import { usePermissions } from '@/hooks/use-permissions'
 
 export default function FinancePage() {
   const [showAdd, setShowAdd] = useState(false)
+  const [editing, setEditing] = useState<Transaction | null>(null)
+  const [deleting, setDeleting] = useState<Transaction | null>(null)
   const { workspace } = useWorkspaceStore()
+  const { can } = usePermissions()
   const supabase = createClient()
   const queryClient = useQueryClient()
 
@@ -43,10 +51,47 @@ export default function FinancePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] })
       setShowAdd(false)
       toast.success('Transaction added')
     },
     onError: () => toast.error('Failed to add transaction'),
+  })
+
+  const updateTransaction = useMutation({
+    mutationFn: async ({ id, ...transaction }: Partial<Transaction> & { id: string }) => {
+      const { error } = await supabase
+        .from('transactions')
+        .update(transaction)
+        .eq('id', id)
+        .eq('workspace_id', workspace?.id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] })
+      setEditing(null)
+      toast.success('Transaction updated')
+    },
+    onError: () => toast.error('Failed to update transaction'),
+  })
+
+  const deleteTransaction = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id)
+        .eq('workspace_id', workspace?.id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] })
+      setDeleting(null)
+      toast.success('Transaction deleted')
+    },
+    onError: () => toast.error('Failed to delete transaction'),
   })
 
   const financeFilters = useMemo(() => {
@@ -98,79 +143,102 @@ export default function FinancePage() {
       key: 'type',
       header: 'Type',
       render: (item: Transaction) => (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${
-          item.type === 'revenue' ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
-        }`}>
-          {item.type === 'revenue' ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+        <span className={item.type === 'revenue' ? 'badge-revenue' : 'badge-expense'}>
+          {item.type === 'revenue' ? <TrendingUp size={9} strokeWidth={2.5} /> : <TrendingDown size={9} strokeWidth={2.5} />}
           {item.type}
         </span>
       ),
     },
-    { key: 'description', header: 'Description' },
-    { key: 'category', header: 'Category' },
+    {
+      key: 'description',
+      header: 'Description',
+      render: (item: Transaction) => (
+        <span className="table-cell-primary">{item.description}</span>
+      ),
+    },
+    {
+      key: 'category',
+      header: 'Category',
+      cellClass: 'table-cell-secondary',
+      render: (item: Transaction) => item.category,
+    },
     {
       key: 'amount',
       header: 'Amount',
       render: (item: Transaction) => (
-        <span className={item.type === 'revenue' ? 'text-success' : 'text-danger'}>
-          {item.type === 'revenue' ? '+' : '-'}${Number(item.amount).toLocaleString()}
+        <span className={`table-cell-amount ${item.type === 'revenue' ? 'text-revenue' : 'text-danger'}`}>
+          {item.type === 'revenue' ? '+' : '-'}${Number(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       ),
     },
-    { key: 'date', header: 'Date' },
+    {
+      key: 'date',
+      header: 'Date',
+      cellClass: 'table-cell-date',
+      render: (item: Transaction) => item.date,
+    },
+    actionsColumn<Transaction>((item) =>
+      can('finance', 'edit') || can('finance', 'delete') ? (
+        <RowActions
+          onEdit={can('finance', 'edit') ? () => setEditing(item) : undefined}
+          onDelete={can('finance', 'delete') ? () => setDeleting(item) : undefined}
+          editLabel="Edit transaction"
+          deleteLabel="Delete transaction"
+        />
+      ) : null
+    ),
   ]
 
   return (
+    <ModuleAccessGuard module="finance" label="Finance">
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6 ai-panel rounded-2xl p-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-semibold">Finance</h1>
-          <p className="text-text-secondary text-sm mt-1">
-            Track revenue, expenses, and cash flow
-          </p>
+          <h1 className="page-title">Finance</h1>
+          <p className="page-subtitle">Track revenue, expenses, and cash flow</p>
         </div>
-        <div className="flex items-center gap-3">
-          <ModuleImport module="finance" entity="transactions" />
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-          >
-            <Plus size={16} />
-            Add Transaction
-          </button>
+        <div className="page-header-actions">
+          <PermissionGate module="finance" permission="import">
+            <ModuleImport module="finance" entity="transactions" />
+          </PermissionGate>
+          <PermissionGate module="finance" permission="create">
+            <button type="button" onClick={() => setShowAdd(true)} className="btn-primary">
+              <Plus size={16} />
+              Add Transaction
+            </button>
+          </PermissionGate>
         </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="ai-card border border-border-primary rounded-xl p-5"
-        >
-          <p className="text-xs text-text-tertiary uppercase tracking-wide">Total Revenue</p>
-          <p className="text-2xl font-semibold text-success mt-1">${totalRevenue.toLocaleString()}</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="ai-card border border-border-primary rounded-xl p-5"
-        >
-          <p className="text-xs text-text-tertiary uppercase tracking-wide">Total Expenses</p>
-          <p className="text-2xl font-semibold text-danger mt-1">${totalExpenses.toLocaleString()}</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="ai-card border border-border-primary rounded-xl p-5"
-        >
-          <p className="text-xs text-text-tertiary uppercase tracking-wide">Net Profit</p>
-          <p className={`text-2xl font-semibold mt-1 ${totalRevenue - totalExpenses >= 0 ? 'text-success' : 'text-danger'}`}>
-            ${(totalRevenue - totalExpenses).toLocaleString()}
+      <div className="summary-row">
+        <div className="summary-stat">
+          <p className="stat-label summary-stat-label">
+            <span className="summary-stat-label-icon">
+              <TrendingUp size={12} />
+            </span>
+            Total Revenue
           </p>
-        </motion.div>
+          <StatMoney value={totalRevenue} className="text-revenue" />
+        </div>
+        <div className="summary-stat">
+          <p className="stat-label summary-stat-label">
+            <span className="summary-stat-label-icon">
+              <TrendingDown size={12} />
+            </span>
+            Total Expenses
+          </p>
+          <StatMoney value={totalExpenses} className="text-danger" />
+        </div>
+        <div className="summary-stat">
+          <p className="stat-label summary-stat-label">
+            <span className="summary-stat-label-icon" aria-hidden="true" />
+            Net Profit
+          </p>
+          <StatMoney
+            value={totalRevenue - totalExpenses}
+            className={totalRevenue - totalExpenses >= 0 ? 'text-text-primary' : 'text-danger'}
+          />
+        </div>
       </div>
 
       {transactions.length === 0 ? (
@@ -194,36 +262,73 @@ export default function FinancePage() {
       )}
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Transaction">
-        <TransactionForm
-          onSubmit={(data) => addTransaction.mutate(data)}
-          loading={addTransaction.isPending}
-        />
+        <TransactionForm onSubmit={(data) => addTransaction.mutate(data)} loading={addTransaction.isPending} />
       </Modal>
+
+      <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit Transaction">
+        {editing && (
+          <TransactionForm
+            key={editing.id}
+            initial={editing}
+            onSubmit={(data) => updateTransaction.mutate({ id: editing.id, ...data })}
+            loading={updateTransaction.isPending}
+            submitLabel="Save changes"
+          />
+        )}
+      </Modal>
+
+      <ConfirmDeleteModal
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => deleting && deleteTransaction.mutate(deleting.id)}
+        title="Delete transaction"
+        description="This will permanently remove the transaction from your ledger."
+        entityName={deleting?.description}
+        loading={deleteTransaction.isPending}
+      />
     </div>
+    </ModuleAccessGuard>
   )
 }
 
 function TransactionForm({
+  initial,
   onSubmit,
   loading,
+  submitLabel = 'Add Transaction',
 }: {
+  initial?: Transaction
   onSubmit: (data: Partial<Transaction>) => void
   loading: boolean
+  submitLabel?: string
 }) {
   const [form, setForm] = useState({
-    type: 'revenue' as 'revenue' | 'expense',
-    description: '',
-    category: '',
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    reference: '',
+    type: (initial?.type ?? 'revenue') as 'revenue' | 'expense',
+    description: initial?.description ?? '',
+    category: initial?.category ?? '',
+    amount: initial?.amount != null ? String(initial.amount) : '',
+    date: initial?.date ?? new Date().toISOString().split('T')[0],
+    reference: initial?.reference ?? '',
   })
+
+  useEffect(() => {
+    if (!initial) return
+    setForm({
+      type: initial.type,
+      description: initial.description,
+      category: initial.category,
+      amount: String(initial.amount),
+      date: initial.date,
+      reference: initial.reference ?? '',
+    })
+  }, [initial])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     onSubmit({
       ...form,
       amount: Number(form.amount),
+      reference: form.reference || null,
     })
   }
 
@@ -232,93 +337,40 @@ function TransactionForm({
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Type</label>
         <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setForm({ ...form, type: 'revenue' })}
-            className={`py-2.5 text-sm font-medium rounded-lg border transition-colors ${
-              form.type === 'revenue'
-                ? 'bg-success/10 border-success/30 text-success'
-                : 'bg-bg-tertiary border-border-primary text-text-secondary hover:bg-bg-elevated'
-            }`}
-          >
+          <button type="button" onClick={() => setForm({ ...form, type: 'revenue' })} className={`py-2.5 text-sm font-medium border transition-colors ${form.type === 'revenue' ? 'bg-success/10 border-success/30 text-success' : 'bg-bg-tertiary border-border-primary text-text-secondary hover:bg-bg-elevated'}`}>
             Revenue
           </button>
-          <button
-            type="button"
-            onClick={() => setForm({ ...form, type: 'expense' })}
-            className={`py-2.5 text-sm font-medium rounded-lg border transition-colors ${
-              form.type === 'expense'
-                ? 'bg-danger/10 border-danger/30 text-danger'
-                : 'bg-bg-tertiary border-border-primary text-text-secondary hover:bg-bg-elevated'
-            }`}
-          >
+          <button type="button" onClick={() => setForm({ ...form, type: 'expense' })} className={`py-2.5 text-sm font-medium border transition-colors ${form.type === 'expense' ? 'bg-danger/10 border-danger/30 text-danger' : 'bg-bg-tertiary border-border-primary text-text-secondary hover:bg-bg-elevated'}`}>
             Expense
           </button>
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Description</label>
-        <input
-          type="text"
-          required
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-        />
+        <input type="text" required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="form-field" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Category</label>
-          <input
-            type="text"
-            required
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-            placeholder="e.g. Sales, Rent"
-          />
+          <input type="text" required value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="form-field" placeholder="e.g. Sales, Rent" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Amount</label>
-          <input
-            type="number"
-            required
-            step="0.01"
-            min="0"
-            value={form.amount}
-            onChange={(e) => setForm({ ...form, amount: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-          />
+          <input type="number" required step="0.01" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="form-field" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Date</label>
-          <input
-            type="date"
-            required
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-          />
+          <input type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="form-field" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Reference</label>
-          <input
-            type="text"
-            value={form.reference}
-            onChange={(e) => setForm({ ...form, reference: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-            placeholder="Invoice #, etc."
-          />
+          <input type="text" value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} className="form-field" placeholder="Invoice #, etc." />
         </div>
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-      >
-        {loading ? 'Adding...' : 'Add Transaction'}
+        <button type="submit" disabled={loading} className="form-submit">
+        {loading ? 'Saving...' : submitLabel}
       </button>
     </form>
   )

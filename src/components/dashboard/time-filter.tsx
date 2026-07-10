@@ -15,16 +15,13 @@ export function TimeFilter() {
   const { timePeriod, setTimePeriod } = useWorkspaceStore()
 
   return (
-    <div className="flex flex-wrap items-center gap-1 p-1 bg-bg-secondary/90 border border-border-primary rounded-lg max-w-full">
+    <div className="segmented-control">
       {periods.map((period) => (
         <button
           key={period.value}
+          type="button"
+          data-active={timePeriod === period.value ? 'true' : 'false'}
           onClick={() => setTimePeriod(period.value)}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-            timePeriod === period.value
-              ? 'bg-gradient-to-r from-accent to-[#2f78ff] text-white'
-              : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary/75'
-          }`}
         >
           {period.label}
         </button>

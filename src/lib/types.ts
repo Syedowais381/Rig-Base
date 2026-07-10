@@ -48,7 +48,9 @@ export interface Shift {
 
 export interface RoleSuggestion {
   name: string
-  permissions: string[]
+  description?: string
+  is_system?: boolean
+  permissions: import('@/lib/rbac/types').ModulePermissionMap
 }
 
 export interface ChecklistItem {
@@ -64,7 +66,9 @@ export interface Role {
   id: string
   workspace_id: string
   name: string
-  permissions: Record<string, boolean>
+  description?: string | null
+  is_system?: boolean
+  permissions: import('@/lib/rbac/types').ModulePermissionMap
   created_at: string
 }
 
@@ -77,9 +81,12 @@ export interface Employee {
   phone: string | null
   role_id: string
   department: string
-  status: 'active' | 'inactive' | 'on_leave'
+  status: 'active' | 'inactive' | 'on_leave' | 'invited'
   hire_date: string
   salary: number | null
+  invite_token?: string | null
+  invited_at?: string | null
+  accepted_at?: string | null
   created_at: string
 }
 

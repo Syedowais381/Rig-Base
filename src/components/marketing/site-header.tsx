@@ -27,7 +27,7 @@ export function SiteHeader() {
       <div
         className={`max-w-7xl mx-auto rounded-2xl transition-all duration-500 pointer-events-auto ${
           scrolled
-            ? 'border border-white/10 bg-[#070b12]/80 backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.45)]'
+            ? 'border border-white/10 bg-[#0a0a0a]/85 backdrop-blur-xl'
             : 'border border-white/5 bg-transparent backdrop-blur-[2px]'
         }`}
       >
@@ -37,10 +37,10 @@ export function SiteHeader() {
               <Logo variant="mark" size="header" priority />
             </span>
             <div className="hidden sm:block min-w-0 leading-tight">
-              <span className="block text-base font-semibold text-white tracking-tight group-hover:text-slate-100 transition-colors duration-200">
+              <span className="block text-base font-serif font-medium text-white tracking-tight group-hover:text-[#f0ede6] transition-colors duration-200">
                 Rig Base
               </span>
-              <span className="block text-xs text-slate-400 mt-0.5 group-hover:text-slate-300 transition-colors duration-200">
+              <span className="block text-xs text-text-tertiary mt-0.5 group-hover:text-text-secondary transition-colors duration-200">
                 Enterprise operations platform
               </span>
             </div>
@@ -73,7 +73,7 @@ export function SiteHeader() {
             <span className="hidden sm:block w-px h-5 bg-white/10" aria-hidden />
             <Link
               href="/auth/signup"
-              className="group inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-lg text-white bg-accent hover:bg-accent-hover hover:shadow-[0_0_24px_rgba(37,99,235,0.35)] transition-all duration-300"
+              className="group inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-md text-[#0a0a0a] bg-accent hover:bg-accent-hover transition-all duration-300"
             >
               Get started
               <ArrowRight

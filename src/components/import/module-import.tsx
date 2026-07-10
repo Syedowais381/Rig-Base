@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Info, Loader2, Upload, Download, X, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Info, Loader2, Upload, Download, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Modal } from '@/components/ui/modal'
 import type { ImportEntity, ImportModule, ImportResult, ImportSchema } from '@/lib/import/types'
@@ -21,7 +21,6 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
   const [format, setFormat] = useState<'csv' | 'json'>('csv')
   const [result, setResult] = useState<ImportResult | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const infoRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
 
   const { data: schema, isLoading: schemaLoading } = useQuery({
@@ -32,16 +31,6 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
       return res.json() as Promise<ImportSchema>
     },
   })
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (infoRef.current && !infoRef.current.contains(event.target as Node)) {
-        setShowInfo(false)
-      }
-    }
-    if (showInfo) document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showInfo])
 
   const downloadSample = useCallback(
     (sampleFormat: 'csv' | 'json') => {
@@ -95,7 +84,7 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
   }
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className="relative z-30 flex flex-col items-end gap-1">
       <input
         ref={fileInputRef}
         type="file"
@@ -111,19 +100,21 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
         type="button"
         disabled={uploading}
         onClick={() => fileInputRef.current?.click()}
-        className="flex items-center gap-2 px-4 py-2.5 border border-border-primary bg-bg-secondary/90 hover:bg-bg-elevated text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+        className="flex items-center gap-2 btn-ghost disabled:opacity-50"
       >
         {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
         {label}
       </button>
 
-      <div className="relative" ref={infoRef}>
+      <div
+        className="relative"
+        onMouseEnter={() => setShowInfo(true)}
+        onMouseLeave={() => setShowInfo(false)}
+      >
         <button
           type="button"
           aria-label="Import format help"
           aria-expanded={showInfo}
-          onMouseEnter={() => setShowInfo(true)}
-          onClick={() => setShowInfo((prev) => !prev)}
           className="flex items-center gap-1 text-xs text-text-tertiary hover:text-accent transition-colors px-1"
         >
           <Info size={14} />
@@ -131,22 +122,13 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
         </button>
 
         {showInfo && (
-          <div className="absolute right-0 top-full mt-2 z-30 w-[min(420px,calc(100vw-2rem))] ai-panel border border-border-primary rounded-xl p-4 shadow-xl max-h-[70vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-2 mb-3">
-              <div>
-                <p className="text-sm font-semibold">{schema?.title ?? 'Import format'}</p>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  {schema?.description ?? 'Loading schema from your workspace...'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowInfo(false)}
-                aria-label="Close format guide"
-                className="text-text-tertiary hover:text-text-primary p-1"
-              >
-                <X size={14} />
-              </button>
+          <div className="absolute right-0 top-full z-[200] w-[min(420px,calc(100vw-2rem))] pt-2">
+            <div className="ai-panel border border-border-primary p-4 shadow-2xl max-h-[70vh] overflow-y-auto">
+            <div className="mb-3">
+              <p className="text-sm font-semibold">{schema?.title ?? 'Import format'}</p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {schema?.description ?? 'Loading schema from your workspace...'}
+              </p>
             </div>
 
             {schemaLoading && (
@@ -167,7 +149,7 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
                   <p className="text-xs font-medium text-text-secondary mb-2">Fields</p>
                   <div className="space-y-2">
                     {schema.fields.map((field) => (
-                      <div key={field.key} className="rounded-lg border border-border-primary bg-bg-secondary/60 px-3 py-2">
+                      <div key={field.key} className="border border-border-primary bg-bg-secondary/60 px-3 py-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <code className="text-xs text-cyan-glow">{field.key}</code>
                           <span className="text-[10px] uppercase tracking-wide text-text-tertiary">{field.type}</span>
@@ -208,7 +190,7 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
                   <button
                     type="button"
                     onClick={() => downloadSample('csv')}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border-primary bg-bg-tertiary hover:bg-bg-elevated"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium border border-border-primary bg-bg-tertiary hover:bg-bg-elevated"
                   >
                     <Download size={14} />
                     Sample CSV (100 rows)
@@ -216,7 +198,7 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
                   <button
                     type="button"
                     onClick={() => downloadSample('json')}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-border-primary bg-bg-tertiary hover:bg-bg-elevated"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium border border-border-primary bg-bg-tertiary hover:bg-bg-elevated"
                   >
                     <Download size={14} />
                     Sample JSON (100 rows)
@@ -224,6 +206,7 @@ export function ModuleImport({ module, entity, label = 'Import data' }: ModuleIm
                 </div>
               </>
             )}
+            </div>
           </div>
         )}
       </div>

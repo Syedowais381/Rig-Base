@@ -70,17 +70,17 @@ function MetricChartDefs({ prefix }: { prefix: string }) {
   return (
     <defs>
       <linearGradient id={`${prefix}-area`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.42} />
-        <stop offset="55%" stopColor="#2563eb" stopOpacity={0.12} />
-        <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0} />
+        <stop offset="0%" stopColor="#c5a059" stopOpacity={0.35} />
+        <stop offset="55%" stopColor="#c5a059" stopOpacity={0.1} />
+        <stop offset="100%" stopColor="#c5a059" stopOpacity={0} />
       </linearGradient>
       <linearGradient id={`${prefix}-bar`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.95} />
-        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.35} />
+        <stop offset="0%" stopColor="#d4b06a" stopOpacity={0.95} />
+        <stop offset="100%" stopColor="#c5a059" stopOpacity={0.35} />
       </linearGradient>
       <linearGradient id={`${prefix}-line`} x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor="#3b82f6" />
-        <stop offset="100%" stopColor="#60a5fa" />
+        <stop offset="0%" stopColor="#c5a059" />
+        <stop offset="100%" stopColor="#d4b06a" />
       </linearGradient>
       <filter id={`${prefix}-glow`} x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="1.8" result="blur" />
@@ -223,8 +223,8 @@ export function MetricCard({
                 isAnimationActive
                 animationDuration={800}
               >
-                <Cell fill="#60a5fa" />
-                <Cell fill="#1e293b" />
+                <Cell fill="#c5a059" />
+                <Cell fill="#1a1a1a" />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
@@ -240,27 +240,23 @@ export function MetricCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="ai-card border border-border-primary rounded-xl p-5 hover:border-border-secondary transition-colors group"
+      className="ai-card border border-border-primary p-5 transition-colors"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-text-tertiary uppercase tracking-wide truncate">{metric.name}</p>
+          <p className="stat-label truncate">{metric.name}</p>
           {loading ? (
             <div className="flex items-center gap-2 mt-2 text-text-tertiary">
               <Loader2 size={16} className="animate-spin" />
               <span className="text-sm">Loading…</span>
             </div>
           ) : (
-            <p className="text-2xl font-semibold mt-1 tabular-nums">{formatValue(value)}</p>
+            <p className="font-serif text-2xl font-medium mt-2 tabular-nums tracking-tight">{formatValue(value)}</p>
           )}
         </div>
         <div
-          className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md flex-shrink-0 ${
-            trend === 'up'
-              ? 'text-success bg-success/10'
-              : trend === 'down'
-                ? 'text-danger bg-danger/10'
-                : 'text-text-tertiary bg-bg-tertiary/85'
+          className={`flex-shrink-0 ${
+            trend === 'up' ? 'trend-pill-up' : trend === 'down' ? 'trend-pill-down' : 'trend-pill-neutral'
           }`}
         >
           {trend === 'up' ? <TrendingUp size={12} /> : trend === 'down' ? <TrendingDown size={12} /> : <Minus size={12} />}
@@ -269,15 +265,11 @@ export function MetricCard({
       </div>
 
       <div className="mt-1 relative">
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          aria-hidden
-        />
         {metric.visualization === 'stat_card' || metric.visualization === 'gauge' ? (
           <div className="h-10 flex items-end">
-            <div className="w-full h-2 bg-bg-tertiary rounded-full overflow-hidden">
+            <div className="w-full h-px bg-border-primary relative">
               <div
-                className="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-accent to-[#60a5fa]"
+                className="absolute left-0 top-0 h-px bg-accent transition-all duration-700"
                 style={{ width: `${gaugeWidth}%` }}
               />
             </div>
@@ -287,7 +279,7 @@ export function MetricCard({
         )}
       </div>
 
-      <p className="text-xs text-text-tertiary mt-3 truncate" title={periodHint}>
+      <p className="text-[11px] text-text-muted mt-3 truncate" title={periodHint}>
         {periodHint}
       </p>
     </motion.div>

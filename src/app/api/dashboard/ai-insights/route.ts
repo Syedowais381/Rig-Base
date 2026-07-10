@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { requirePermission } from '@/lib/api/workspace-context'
 import {
   buildAiInsightContext,
   generateAiInsights,
@@ -65,10 +66,15 @@ export async function GET(request: Request) {
   const timePeriod = VALID_PERIODS.includes(periodParam as TimePeriod) ? (periodParam as TimePeriod) : 'month'
   const insightDate = getInsightDateKey()
 
+  const access = await requirePermission(supabase, user.id, 'dashboard', 'view')
+  if ('error' in access) {
+    return NextResponse.json({ error: 'Workspace not found' }, { status: access.status })
+  }
+
   const { data: workspace, error: workspaceError } = await supabase
     .from('workspaces')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('id', access.workspaceId)
     .single()
 
   if (workspaceError || !workspace) {
@@ -115,10 +121,15 @@ export async function POST(request: Request) {
   const timePeriod = VALID_PERIODS.includes(periodParam as TimePeriod) ? (periodParam as TimePeriod) : 'month'
   const insightDate = getInsightDateKey()
 
+  const access = await requirePermission(supabase, user.id, 'dashboard', 'view_reports')
+  if ('error' in access) {
+    return NextResponse.json({ error: 'Workspace not found' }, { status: access.status })
+  }
+
   const { data: workspace, error: workspaceError } = await supabase
     .from('workspaces')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('id', access.workspaceId)
     .single()
 
   if (workspaceError || !workspace) {

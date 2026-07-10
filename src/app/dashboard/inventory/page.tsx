@@ -1,20 +1,29 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Modal } from '@/components/ui/modal'
+import { ConfirmDeleteModal } from '@/components/ui/confirm-delete-modal'
 import { FilterableDataTable } from '@/components/ui/filterable-data-table'
+import { RowActions, actionsColumn } from '@/components/ui/row-actions'
 import { Package, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Product } from '@/lib/types'
 import { ModuleImport } from '@/components/import/module-import'
+import { ThemeSelect } from '@/components/ui/theme-select'
+import { ModuleAccessGuard } from '@/components/rbac/module-access-guard'
+import { PermissionGate } from '@/components/rbac/permission-gate'
+import { usePermissions } from '@/hooks/use-permissions'
 
 export default function InventoryPage() {
   const [showAdd, setShowAdd] = useState(false)
+  const [editing, setEditing] = useState<Product | null>(null)
+  const [deleting, setDeleting] = useState<Product | null>(null)
   const { workspace } = useWorkspaceStore()
+  const { can } = usePermissions()
   const supabase = createClient()
   const queryClient = useQueryClient()
 
@@ -41,10 +50,47 @@ export default function InventoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] })
       setShowAdd(false)
       toast.success('Product added')
     },
     onError: () => toast.error('Failed to add product'),
+  })
+
+  const updateProduct = useMutation({
+    mutationFn: async ({ id, ...product }: Partial<Product> & { id: string }) => {
+      const { error } = await supabase
+        .from('products')
+        .update(product)
+        .eq('id', id)
+        .eq('workspace_id', workspace?.id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] })
+      setEditing(null)
+      toast.success('Product updated')
+    },
+    onError: () => toast.error('Failed to update product'),
+  })
+
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id)
+        .eq('workspace_id', workspace?.id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] })
+      setDeleting(null)
+      toast.success('Product deleted')
+    },
+    onError: () => toast.error('Failed to delete product'),
   })
 
   const inventoryFilters = useMemo(() => {
@@ -72,13 +118,13 @@ export default function InventoryPage() {
 
   const columns = [
     { key: 'name', header: 'Product' },
-    { key: 'sku', header: 'SKU' },
-    { key: 'category', header: 'Category' },
+    { key: 'sku', header: 'SKU', cellClass: 'table-cell-secondary' },
+    { key: 'category', header: 'Category', cellClass: 'table-cell-secondary' },
     {
       key: 'quantity',
       header: 'Quantity',
       render: (item: Product) => (
-        <span className={item.quantity <= item.min_stock_level ? 'text-danger' : ''}>
+        <span className={`table-cell-amount ${item.quantity <= item.min_stock_level ? 'text-danger' : 'text-text-primary'}`}>
           {item.quantity}
         </span>
       ),
@@ -86,7 +132,11 @@ export default function InventoryPage() {
     {
       key: 'unit_price',
       header: 'Price',
-      render: (item: Product) => `$${Number(item.unit_price).toFixed(2)}`,
+      render: (item: Product) => (
+        <span className="table-cell-amount text-text-primary">
+          ${Number(item.unit_price).toFixed(2)}
+        </span>
+      ),
     },
     {
       key: 'status',
@@ -101,26 +151,36 @@ export default function InventoryPage() {
         </span>
       ),
     },
+    actionsColumn<Product>((item) =>
+      can('inventory', 'edit') || can('inventory', 'delete') ? (
+        <RowActions
+          onEdit={can('inventory', 'edit') ? () => setEditing(item) : undefined}
+          onDelete={can('inventory', 'delete') ? () => setDeleting(item) : undefined}
+          editLabel={`Edit ${item.name}`}
+          deleteLabel={`Delete ${item.name}`}
+        />
+      ) : null
+    ),
   ]
 
   return (
+    <ModuleAccessGuard module="inventory" label="Inventory">
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6 ai-panel rounded-2xl p-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-semibold">Inventory</h1>
-          <p className="text-text-secondary text-sm mt-1">
-            Track products, stock levels, and categories
-          </p>
+          <h1 className="page-title">Inventory</h1>
+          <p className="page-subtitle">Track products, stock levels, and categories</p>
         </div>
-        <div className="flex items-center gap-3">
-          <ModuleImport module="inventory" entity="products" />
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-          >
-            <Plus size={16} />
-            Add Product
-          </button>
+        <div className="page-header-actions">
+          <PermissionGate module="inventory" permission="import">
+            <ModuleImport module="inventory" entity="products" />
+          </PermissionGate>
+          <PermissionGate module="inventory" permission="create">
+            <button type="button" onClick={() => setShowAdd(true)} className="btn-primary">
+              <Plus size={16} />
+              Add Product
+            </button>
+          </PermissionGate>
         </div>
       </div>
 
@@ -151,28 +211,69 @@ export default function InventoryPage() {
           loading={addProduct.isPending}
         />
       </Modal>
+
+      <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit Product">
+        {editing && (
+          <ProductForm
+            key={editing.id}
+            initial={editing}
+            categories={workspace?.product_categories || []}
+            onSubmit={(data) => updateProduct.mutate({ id: editing.id, ...data })}
+            loading={updateProduct.isPending}
+            submitLabel="Save changes"
+          />
+        )}
+      </Modal>
+
+      <ConfirmDeleteModal
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => deleting && deleteProduct.mutate(deleting.id)}
+        title="Delete product"
+        description="This will permanently remove the product from your inventory."
+        entityName={deleting?.name}
+        loading={deleteProduct.isPending}
+      />
     </div>
+    </ModuleAccessGuard>
   )
 }
 
 function ProductForm({
   categories,
+  initial,
   onSubmit,
   loading,
+  submitLabel = 'Add Product',
 }: {
   categories: string[]
+  initial?: Product
   onSubmit: (data: Partial<Product>) => void
   loading: boolean
+  submitLabel?: string
 }) {
   const [form, setForm] = useState({
-    name: '',
-    sku: '',
-    category: categories[0] || '',
-    quantity: '0',
-    unit_price: '',
-    cost_price: '',
-    min_stock_level: '10',
+    name: initial?.name ?? '',
+    sku: initial?.sku ?? '',
+    category: initial?.category ?? categories[0] ?? '',
+    quantity: initial?.quantity != null ? String(initial.quantity) : '0',
+    unit_price: initial?.unit_price != null ? String(initial.unit_price) : '',
+    cost_price: initial?.cost_price != null ? String(initial.cost_price) : '',
+    min_stock_level: initial?.min_stock_level != null ? String(initial.min_stock_level) : '10',
   })
+
+  useEffect(() => {
+    if (!initial) return
+    setForm({
+      name: initial.name,
+      sku: initial.sku,
+      category: initial.category,
+      quantity: String(initial.quantity),
+      unit_price: String(initial.unit_price),
+      cost_price: String(initial.cost_price),
+      min_stock_level: String(initial.min_stock_level),
+    })
+  }, [initial])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -192,91 +293,47 @@ function ProductForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Product name</label>
-        <input
-          type="text"
-          required
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-        />
+        <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="form-field" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">SKU</label>
-          <input
-            type="text"
-            required
-            value={form.sku}
-            onChange={(e) => setForm({ ...form, sku: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-          />
+          <input type="text" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className="form-field" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Category</label>
-          <select
+          <ThemeSelect
+            variant="form"
             value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-            <option value="Other">Other</option>
-          </select>
+            onChange={(category) => setForm({ ...form, category })}
+            options={[
+              ...categories.map((c) => ({ value: c, label: c })),
+              { value: 'Other', label: 'Other' },
+            ]}
+            aria-label="Category"
+          />
         </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Quantity</label>
-          <input
-            type="number"
-            required
-            min="0"
-            value={form.quantity}
-            onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-          />
+          <input type="number" required min="0" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="form-field" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Unit price</label>
-          <input
-            type="number"
-            required
-            step="0.01"
-            value={form.unit_price}
-            onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-          />
+          <input type="number" required step="0.01" value={form.unit_price} onChange={(e) => setForm({ ...form, unit_price: e.target.value })} className="form-field" />
         </div>
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1.5">Cost price</label>
-          <input
-            type="number"
-            required
-            step="0.01"
-            value={form.cost_price}
-            onChange={(e) => setForm({ ...form, cost_price: e.target.value })}
-            className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-          />
+          <input type="number" required step="0.01" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value })} className="form-field" />
         </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-text-secondary mb-1.5">Min stock level</label>
-        <input
-          type="number"
-          required
-          min="0"
-          value={form.min_stock_level}
-          onChange={(e) => setForm({ ...form, min_stock_level: e.target.value })}
-          className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
-        />
+        <input type="number" required min="0" value={form.min_stock_level} onChange={(e) => setForm({ ...form, min_stock_level: e.target.value })} className="form-field" />
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50"
-      >
-        {loading ? 'Adding...' : 'Add Product'}
+      <button type="submit" disabled={loading} className="form-submit">
+        {loading ? 'Saving...' : submitLabel}
       </button>
     </form>
   )

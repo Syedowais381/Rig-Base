@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { requirePermission } from '@/lib/api/workspace-context'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -6,19 +7,14 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!workspace) return NextResponse.json({ error: 'No workspace' }, { status: 404 })
+  const access = await requirePermission(supabase, user.id, 'supply_chain', 'view')
+  if ('error' in access) return NextResponse.json({ error: access.error }, { status: access.status })
 
   const { data, error } = await supabase
     .from('purchase_orders')
     .select('*')
-    .eq('workspace_id', workspace.id)
-    .order('created_at', { ascending: false })
+    .eq('workspace_id', access.workspaceId)
+    .order('order_date', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
@@ -29,18 +25,13 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('id')
-    .eq('user_id', user.id)
-    .single()
-
-  if (!workspace) return NextResponse.json({ error: 'No workspace' }, { status: 404 })
+  const access = await requirePermission(supabase, user.id, 'supply_chain', 'create')
+  if ('error' in access) return NextResponse.json({ error: access.error }, { status: access.status })
 
   const body = await request.json()
   const { error } = await supabase.from('purchase_orders').insert({
     ...body,
-    workspace_id: workspace.id,
+    workspace_id: access.workspaceId,
   })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -60,7 +60,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,#3d8bff2a_0%,transparent_40%),radial-gradient(circle_at_80%_70%,#836dff20_0%,transparent_32%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,#c5a05912_0%,transparent_40%)]" />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Logo variant="full" size="xl" href="/" className="justify-center mb-8" />
@@ -70,10 +70,10 @@ export default function SignupPage() {
 
         <ExistingSessionBanner />
 
-        <div className="ai-panel border border-border-primary rounded-xl p-6">
+        <div className="border border-border-primary p-6">
           <button
             onClick={handleGoogleSignup}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-bg-tertiary border border-border-primary rounded-lg hover:bg-bg-elevated transition-colors mb-6"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-bg-tertiary border border-border-primary hover:bg-bg-elevated transition-colors mb-6"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -103,7 +103,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
+                className="form-field"
                 placeholder="John Smith"
               />
             </div>
@@ -117,7 +117,7 @@ export default function SignupPage() {
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
+                className="form-field"
                 placeholder="Acme Inc."
               />
             </div>
@@ -131,7 +131,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
+                className="form-field"
                 placeholder="you@company.com"
               />
             </div>
@@ -147,7 +147,7 @@ export default function SignupPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg pr-10"
+                  className="form-field pr-10"
                   placeholder="Min. 6 characters"
                 />
                 <button
@@ -163,7 +163,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ai-glow"
+              className="w-full form-submit flex items-center justify-center gap-2"
             >
               {loading && <Loader2 size={18} className="animate-spin" />}
               Create account

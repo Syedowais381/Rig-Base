@@ -1,20 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { WorkspaceConfig } from '@/lib/types'
 import type { WorkspaceImportContext } from '@/lib/import/types'
+import { resolveWorkspaceForUser } from '@/lib/workspace-access'
 
 export async function loadWorkspaceImportContext(
   supabase: SupabaseClient,
   userId: string
 ): Promise<WorkspaceImportContext | null> {
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('*')
-    .eq('user_id', userId)
-    .single()
+  const access = await resolveWorkspaceForUser(supabase, userId)
+  if (!access) return null
 
-  if (!workspace) return null
-
-  const ws = workspace as WorkspaceConfig
+  const ws = access.workspace as WorkspaceConfig
 
   const { data: roles } = await supabase.from('roles').select('id, name').eq('workspace_id', ws.id)
   const roleNameToId: Record<string, string> = {}

@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { OnboardingConfig } from '@/lib/onboarding-config'
+import { normalizeRolePermissions } from '@/lib/rbac/permissions'
+import { syncRoleModulePermissions } from '@/lib/rbac/sync-role-permissions'
 
 export async function persistWorkspace(
   supabase: SupabaseClient,
@@ -42,36 +44,41 @@ export async function persistWorkspace(
     return { success: false, error: 'Failed to update profile', status: 500 }
   }
 
-  const uniqueRoles = new Map<string, Record<string, boolean>>()
-  for (const role of config.roles) {
-    const roleName = role.name.trim()
-    if (!roleName) continue
-    uniqueRoles.set(
-      roleName,
-      role.permissions.reduce((acc: Record<string, boolean>, perm: string) => {
-        acc[perm] = true
-        return acc
-      }, {})
-    )
-  }
-
   const { error: clearRolesError } = await supabase.from('roles').delete().eq('workspace_id', workspace.id)
   if (clearRolesError) {
     console.error('Roles cleanup error:', clearRolesError)
     return { success: false, error: 'Failed to sync roles', status: 500 }
   }
 
-  const rolesToInsert = Array.from(uniqueRoles.entries()).map(([name, permissions]) => ({
+  const rolesToInsert = config.roles.map((role) => ({
     workspace_id: workspace.id,
-    name,
-    permissions,
+    name: role.name,
+    description: role.description ?? null,
+    is_system: role.is_system ?? false,
+    permissions: normalizeRolePermissions(role.permissions),
   }))
 
   if (rolesToInsert.length > 0) {
-    const { error: roleInsertError } = await supabase.from('roles').insert(rolesToInsert)
+    const { data: insertedRoles, error: roleInsertError } = await supabase
+      .from('roles')
+      .insert(rolesToInsert)
+      .select('id, permissions')
+
     if (roleInsertError) {
       console.error('Roles insert error:', roleInsertError)
       return { success: false, error: 'Failed to sync roles', status: 500 }
+    }
+
+    for (const role of insertedRoles ?? []) {
+      try {
+        await syncRoleModulePermissions(
+          supabase,
+          role.id,
+          normalizeRolePermissions(role.permissions)
+        )
+      } catch (syncError) {
+        console.error('Role permission sync error:', syncError)
+      }
     }
   }
 

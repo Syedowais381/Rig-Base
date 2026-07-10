@@ -37,7 +37,7 @@ export function SetupChecklistButton({ workspace, counts }: SetupChecklistButton
         </span>
         <span className="w-12 h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
           <span
-            className="block h-full bg-gradient-to-r from-accent to-cyan-glow rounded-full transition-all"
+            className="block h-full bg-accent rounded-full transition-all"
             style={{ width: `${progress.percent}%` }}
           />
         </span>
@@ -51,7 +51,7 @@ export function SetupChecklistButton({ workspace, counts }: SetupChecklistButton
           </div>
           <div className="w-full h-2 bg-bg-tertiary rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-accent via-cyan-glow to-purple-energy rounded-full transition-all"
+              className="h-full bg-accent rounded-full transition-all"
               style={{ width: `${progress.percent}%` }}
             />
           </div>

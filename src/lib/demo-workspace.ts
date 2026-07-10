@@ -1,15 +1,18 @@
 import type { OnboardingConfig } from '@/lib/onboarding-config'
+import { buildUniversalRoles } from '@/lib/rbac/permissions'
+
+const demoModules = {
+  dashboard: true,
+  hr: true,
+  inventory: true,
+  finance: true,
+  supply_chain: true,
+  crm: true,
+} as const
 
 export const demoRestaurantWorkspace: OnboardingConfig = {
   business_type: 'Restaurant',
-  modules: {
-    dashboard: true,
-    hr: true,
-    inventory: true,
-    finance: true,
-    supply_chain: true,
-    crm: true,
-  },
+  modules: demoModules,
   dashboard_metrics: [
     {
       id: 'daily_revenue',
@@ -91,49 +94,7 @@ export const demoRestaurantWorkspace: OnboardingConfig = {
   ],
   product_categories: ['Appetizers', 'Main Course', 'Beverages', 'Desserts'],
   service_types: ['Dine-in', 'Takeaway', 'Delivery'],
-  roles: [
-    {
-      name: 'Owner',
-      permissions: [
-        'dashboard_view',
-        'dashboard_edit',
-        'dashboard_admin',
-        'finance_view',
-        'finance_edit',
-        'finance_admin',
-        'inventory_view',
-        'inventory_edit',
-        'inventory_admin',
-        'hr_view',
-        'hr_edit',
-        'hr_admin',
-        'crm_view',
-        'crm_edit',
-        'crm_admin',
-        'supply_chain_view',
-        'supply_chain_edit',
-        'supply_chain_admin',
-      ],
-    },
-    {
-      name: 'Restaurant Manager',
-      permissions: [
-        'dashboard_view',
-        'dashboard_edit',
-        'hr_view',
-        'hr_edit',
-        'inventory_view',
-        'inventory_edit',
-        'crm_view',
-        'crm_edit',
-        'supply_chain_view',
-      ],
-    },
-    {
-      name: 'Finance Executive',
-      permissions: ['dashboard_view', 'finance_view', 'finance_edit'],
-    },
-  ],
+  roles: buildUniversalRoles(demoModules),
   setup_checklist: [
     {
       id: 'add_staff',

@@ -33,7 +33,9 @@ type OnboardingDashboardMetric = {
 
 type OnboardingRole = {
   name: string
-  permissions: string[]
+  description?: string
+  is_system?: boolean
+  permissions: import('@/lib/rbac/types').ModulePermissionMap
 }
 
 type OnboardingChecklistItem = {
@@ -179,8 +181,8 @@ export function validateOnboardingConfig(value: unknown): ValidationResult<Onboa
   }
 
   for (const role of value.roles) {
-    if (!isObject(role) || typeof role.name !== 'string' || !isStringArray(role.permissions)) {
-      return { success: false, error: 'Each role must include name and permissions array.' }
+    if (!isObject(role) || typeof role.name !== 'string' || !isObject(role.permissions)) {
+      return { success: false, error: 'Each role must include name and permissions map.' }
     }
   }
 

@@ -59,7 +59,7 @@ export default function Home() {
       <SiteHeader />
 
       <section className="relative min-h-[100vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0 bg-[#070b12]" aria-hidden>
+        <div className="absolute inset-0 bg-[#0a0a0a]" aria-hidden>
           <Image
             src={HERO_BG_IMAGE}
             alt=""
@@ -76,32 +76,32 @@ export default function Home() {
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-32 sm:pt-36 pb-20 lg:pb-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16 items-center">
             <div className="max-w-2xl">
-              <p className="text-eyebrow mb-6 text-slate-400">Enterprise operations platform</p>
+              <p className="text-eyebrow mb-6">Enterprise operations platform</p>
 
-              <h1 className="text-display text-[clamp(2.35rem,5vw,3.85rem)] text-white mb-6">
+              <h1 className="text-display text-[clamp(2.35rem,5vw,3.85rem)] text-text-primary mb-6">
                 The operating system
                 <br />
                 for serious businesses.
               </h1>
 
-              <p className="text-lead max-w-xl mb-3 text-slate-300">
+              <p className="text-lead max-w-xl mb-3">
                 Rig Base delivers a structured workspace for{' '}
-                <span className="text-emphasis text-white">finance</span>,{' '}
-                <span className="text-emphasis text-white">inventory</span>,{' '}
-                <span className="text-emphasis text-white">HR</span>,{' '}
-                <span className="text-emphasis text-white">CRM</span>, and{' '}
-                <span className="text-emphasis text-white">supply chain</span>
+                <span className="text-emphasis">finance</span>,{' '}
+                <span className="text-emphasis">inventory</span>,{' '}
+                <span className="text-emphasis">HR</span>,{' '}
+                <span className="text-emphasis">CRM</span>, and{' '}
+                <span className="text-emphasis">supply chain</span>
                 — configured to your industry, not a generic template.
               </p>
 
-              <p className="text-sm text-slate-400 mb-10 max-w-lg">
+              <p className="text-sm text-text-tertiary mb-10 max-w-lg">
                 Built for owners and operators who need clarity, control, and accountable reporting.
               </p>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <Link
                   href="/auth/signup"
-                  className="marketing-btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-white bg-accent hover:bg-accent-hover"
+                  className="marketing-btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-[#0a0a0a] bg-accent hover:bg-accent-hover"
                 >
                   Launch your workspace
                   <ArrowRight size={16} strokeWidth={2.25} />
@@ -197,7 +197,7 @@ export default function Home() {
           </div>
           <Link
             href="/auth/signup"
-            className="marketing-btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-white bg-accent hover:bg-accent-hover shrink-0"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold text-[#0a0a0a] bg-accent hover:bg-accent-hover"
           >
             Start free setup
             <ArrowRight size={16} strokeWidth={2.25} />

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { validateOnboardingConfig } from '@/lib/onboarding-config'
 import { persistWorkspace } from '@/lib/workspace-service'
+import { resolveWorkspaceForUser } from '@/lib/workspace-access'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -38,24 +39,24 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: workspace, error } = await supabase
-    .from('workspaces')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
+  const access = await resolveWorkspaceForUser(supabase, user.id)
 
-  if (error) {
+  if (!access) {
     return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('onboarding_completed')
-    .eq('id', user.id)
-    .maybeSingle()
+  const { workspace } = access
 
-  if (profile && profile.onboarding_completed === false) {
-    await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
+  if (access.isOwner) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile && profile.onboarding_completed === false) {
+      await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
+    }
   }
 
   return NextResponse.json(workspace)

@@ -153,7 +153,7 @@ export function HeroErpPreview() {
         className={`marketing-glass-panel w-full rounded-2xl border overflow-hidden transition-[border-color,box-shadow] duration-500 ${
           expanded
             ? 'border-white/14'
-            : 'border-white/10 hover:border-accent/35 hover:shadow-[0_0_40px_rgba(37,99,235,0.18)]'
+            : 'border-white/10 hover:border-accent/35 hover:shadow-[0_0_40px_rgba(197,160,89,0.15)]'
         }`}
       >
         <button
@@ -213,7 +213,7 @@ export function HeroErpPreview() {
                         onClick={() => setActiveId(module.id)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-all duration-300 ${
                           isActive
-                            ? 'bg-accent text-white shadow-[0_0_16px_rgba(37,99,235,0.4)]'
+                            ? 'bg-accent text-[#0a0a0a] shadow-[0_0_16px_rgba(197,160,89,0.35)]'
                             : 'text-slate-400 hover:text-slate-200 hover:bg-white/8'
                         }`}
                       >

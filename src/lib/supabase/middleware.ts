@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 
-/** True if profile says done OR a workspace row exists (avoids stuck onboarding when flag is out of sync). */
+/** True if profile says done, user owns a workspace, or is an active linked employee. */
 async function isUserOnboarded(supabase: SupabaseClient, userId: string): Promise<boolean> {
   const { data: profile } = await supabase
     .from('profiles')
@@ -20,7 +20,16 @@ async function isUserOnboarded(supabase: SupabaseClient, userId: string): Promis
     .eq('user_id', userId)
     .maybeSingle()
 
-  return !!workspace
+  if (workspace) return true
+
+  const { data: employee } = await supabase
+    .from('employees')
+    .select('id')
+    .eq('user_id', userId)
+    .in('status', ['active', 'on_leave'])
+    .maybeSingle()
+
+  return !!employee
 }
 
 export async function updateSession(request: NextRequest) {

@@ -7,9 +7,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { User, Building2, Loader2 } from 'lucide-react'
+import { ModuleAccessGuard } from '@/components/rbac/module-access-guard'
+import { usePermissions } from '@/hooks/use-permissions'
 
 export default function SettingsPage() {
   const { profile, workspace } = useWorkspaceStore()
+  const { can } = usePermissions()
   const supabase = createClient()
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
@@ -40,19 +43,20 @@ export default function SettingsPage() {
   }
 
   return (
+    <ModuleAccessGuard module="settings" label="Settings">
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8 ai-panel rounded-2xl p-6">
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-text-secondary text-sm mt-1">Manage your account and workspace</p>
+      <div className="mb-8">
+        <h1 className="page-title">Settings</h1>
+        <p className="page-subtitle">Manage your account and workspace</p>
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="ai-card border border-border-primary rounded-xl p-6 mb-6"
+        className="ai-card border border-border-primary p-6 mb-6"
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-8 bg-accent-muted rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-accent-muted flex items-center justify-center">
             <User size={16} className="text-accent" />
           </div>
           <h2 className="font-semibold">Profile</h2>
@@ -65,7 +69,7 @@ export default function SettingsPage() {
               type="text"
               value={form.full_name}
               onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
+              className="form-field"
             />
           </div>
           <div>
@@ -74,7 +78,7 @@ export default function SettingsPage() {
               type="text"
               value={form.business_name}
               onChange={(e) => setForm({ ...form, business_name: e.target.value })}
-              className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg"
+              className="form-field"
             />
           </div>
           <div>
@@ -83,14 +87,10 @@ export default function SettingsPage() {
               type="email"
               value={profile?.email || ''}
               disabled
-              className="w-full px-3 py-2.5 bg-bg-tertiary border border-border-primary rounded-lg opacity-60 cursor-not-allowed"
+              className="form-field opacity-60 cursor-not-allowed"
             />
           </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4990ff] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 ai-glow"
-          >
+          <button type="submit" disabled={saving || !can('settings', 'edit')} className="btn-primary">
             {saving && <Loader2 size={14} className="animate-spin" />}
             Save changes
           </button>
@@ -101,10 +101,10 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="ai-card border border-border-primary rounded-xl p-6"
+        className="ai-card border border-border-primary p-6"
       >
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-8 bg-accent-muted rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-accent-muted flex items-center justify-center">
             <Building2 size={16} className="text-accent" />
           </div>
           <h2 className="font-semibold">Workspace</h2>
@@ -136,5 +136,6 @@ export default function SettingsPage() {
         </div>
       </motion.div>
     </div>
+    </ModuleAccessGuard>
   )
 }

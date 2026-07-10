@@ -26,20 +26,22 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[85vh] overflow-y-auto ai-panel border border-border-primary rounded-xl z-50 p-6"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg max-h-[85vh] ai-panel border border-border-primary z-50 flex flex-col overflow-visible"
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between p-6 pb-0 shrink-0">
               <h2 className="text-lg font-semibold">{title}</h2>
               <button
                 onClick={onClose}
                 aria-label="Close modal"
                 title="Close modal"
-                className="p-1.5 text-text-tertiary hover:text-text-primary rounded-lg hover:bg-bg-tertiary transition-colors"
+                className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
-            {children}
+            <div className="overflow-y-auto min-h-0 p-6 pt-4">
+              {children}
+            </div>
           </motion.div>
         </>
       )}

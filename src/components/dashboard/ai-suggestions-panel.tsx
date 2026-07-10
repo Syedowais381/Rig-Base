@@ -66,27 +66,27 @@ export function AiSuggestionsPanel({ timePeriod }: AiSuggestionsPanelProps) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15 }}
-      className="ai-card border border-border-primary rounded-xl p-6 mb-8"
+      className="ai-card border border-border-primary p-6 mb-8"
     >
       <div className="flex items-start gap-3 mb-4">
-        <div className="w-9 h-9 bg-accent-muted rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-9 h-9 bg-accent-muted flex items-center justify-center flex-shrink-0">
           <Sparkles size={18} className="text-accent" />
         </div>
         <div className="flex-1">
-          <h2 className="font-semibold text-sm">AI business suggestions</h2>
+          <h2 className="font-serif font-medium text-base">AI business suggestions</h2>
           <p className="text-xs text-text-tertiary mt-0.5">
             Request one personalized analysis per day based on your dashboard metrics.
           </p>
         </div>
         {insight?.cached && (
-          <span className="text-[10px] uppercase tracking-wide text-text-tertiary px-2 py-1 rounded-md bg-bg-tertiary/70">
+          <span className="text-[10px] uppercase tracking-wide text-text-tertiary px-2 py-1 bg-bg-tertiary/70">
             Today&apos;s insight
           </span>
         )}
       </div>
 
       {errorMessage ? (
-        <div className="flex items-start gap-2 text-sm text-danger bg-danger/5 border border-danger/20 rounded-lg px-4 py-3 mb-4">
+        <div className="flex items-start gap-2 text-sm text-danger bg-danger/5 border border-danger/20 px-4 py-3 mb-4">
           <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
           <p>{errorMessage}</p>
         </div>
@@ -109,7 +109,7 @@ export function AiSuggestionsPanel({ timePeriod }: AiSuggestionsPanelProps) {
             {insight.suggestions.map((suggestion, index) => (
               <div
                 key={`${suggestion.title}-${index}`}
-                className="border border-border-primary/70 rounded-lg px-4 py-3 bg-bg-secondary/40"
+                className="border border-border-primary/70 px-4 py-3 bg-bg-secondary/40"
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full border ${priorityStyles[suggestion.priority]}`}>
@@ -144,7 +144,7 @@ export function AiSuggestionsPanel({ timePeriod }: AiSuggestionsPanelProps) {
             type="button"
             onClick={() => generate.mutate()}
             disabled={isGenerating}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-accent to-[#2f78ff] text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="inline-flex items-center gap-2 btn-primary disabled:opacity-50"
           >
             <Sparkles size={16} />
             Get AI insight

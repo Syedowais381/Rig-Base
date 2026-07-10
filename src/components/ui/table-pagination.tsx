@@ -32,7 +32,7 @@ export function TablePagination({
           type="button"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border-primary bg-bg-secondary/90 disabled:opacity-40 hover:bg-bg-tertiary transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-border-primary bg-bg-secondary/90 disabled:opacity-40 hover:bg-bg-tertiary transition-colors"
         >
           <ChevronLeft size={14} />
           Previous
@@ -44,7 +44,7 @@ export function TablePagination({
           type="button"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-border-primary bg-bg-secondary/90 disabled:opacity-40 hover:bg-bg-tertiary transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-border-primary bg-bg-secondary/90 disabled:opacity-40 hover:bg-bg-tertiary transition-colors"
         >
           Next
           <ChevronRight size={14} />

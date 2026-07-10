@@ -18,18 +18,15 @@ export function EmptyState({ icon: Icon, title, description, action }: EmptyStat
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center py-16 px-4"
+      className="flex flex-col items-center justify-center py-16 px-4 border border-border-primary"
     >
-      <div className="w-16 h-16 ai-card border border-border-primary rounded-2xl flex items-center justify-center mb-4">
-        <Icon size={24} className="text-cyan-glow" />
+      <div className="w-14 h-14 border border-border-primary flex items-center justify-center mb-4">
+        <Icon size={22} className="text-accent" strokeWidth={1.75} />
       </div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-text-secondary text-sm text-center max-w-md mb-6">{description}</p>
+      <h3 className="font-serif text-xl font-medium mb-2">{title}</h3>
+      <p className="text-text-tertiary text-sm text-center max-w-md mb-6">{description}</p>
       {action && (
-        <button
-          onClick={action.onClick}
-          className="px-4 py-2.5 bg-gradient-to-r from-accent to-[#2f78ff] hover:to-[#4a91ff] text-white text-sm font-medium rounded-lg transition-colors ai-glow"
-        >
+        <button type="button" onClick={action.onClick} className="btn-primary">
           {action.label}
         </button>
       )}

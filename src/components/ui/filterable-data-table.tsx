@@ -9,6 +9,7 @@ import { matchesFilter, matchesSearch, useTableControls, type SelectFilter } fro
 interface Column<T> {
   key: string
   header: string
+  cellClass?: string
   render?: (item: T) => React.ReactNode
 }
 
@@ -72,7 +73,7 @@ export function FilterableDataTable<T>({
   )
 
   return (
-    <div>
+    <div className="relative z-0">
       <TableToolbar
         search={table.search}
         onSearchChange={table.setSearch}
@@ -87,7 +88,7 @@ export function FilterableDataTable<T>({
       />
 
       {table.filteredCount === 0 ? (
-        <div className="ai-card border border-border-primary rounded-xl px-6 py-12 text-center">
+        <div className="ai-card border border-border-primary px-6 py-12 text-center">
           <p className="text-sm text-text-secondary">{emptyFilteredMessage}</p>
           {table.hasActiveFilters && (
             <button

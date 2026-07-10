@@ -10,6 +10,8 @@ import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics'
 import { filterDashboardMetrics, getMetricPeriodHint } from '@/lib/dashboard/metric-filter'
 import { getComparisonLabel } from '@/lib/dashboard/date-ranges'
 import { Sparkles } from 'lucide-react'
+import { ModuleAccessGuard } from '@/components/rbac/module-access-guard'
+import { PermissionGate } from '@/components/rbac/permission-gate'
 
 export default function DashboardPage() {
   const { workspace, profile, timePeriod } = useWorkspaceStore()
@@ -37,16 +39,17 @@ export default function DashboardPage() {
   const comparisonLabel = getComparisonLabel(timePeriod)
 
   return (
+    <ModuleAccessGuard module="dashboard" label="Dashboard">
     <div className="max-w-7xl mx-auto pb-24">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 ai-panel rounded-2xl p-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="page-title">
             Welcome back, {profile?.full_name?.split(' ')[0] || 'there'}
           </h1>
-          <p className="text-text-secondary text-sm mt-1">
+          <p className="page-subtitle">
             {workspace.business_type} — {comparisonLabel.toLowerCase()}
           </p>
-          <p className="text-text-tertiary text-xs mt-1">
+          <p className="text-[11px] text-text-muted mt-1">
             Showing {visibleMetrics.length} metrics for your active modules
           </p>
         </div>
@@ -76,20 +79,23 @@ export default function DashboardPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-16 mb-8 ai-card border border-border-primary rounded-xl">
-          <div className="w-16 h-16 ai-card border border-border-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles size={24} className="text-cyan-glow" />
+        <div className="text-center py-16 mb-8 border border-border-primary">
+          <div className="w-14 h-14 border border-border-primary flex items-center justify-center mx-auto mb-4">
+            <Sparkles size={22} className="text-accent" />
           </div>
-          <h2 className="text-lg font-semibold mb-2">No metrics for this view</h2>
+          <h2 className="font-serif text-xl font-medium mb-2">No metrics for this view</h2>
           <p className="text-text-secondary text-sm max-w-md mx-auto">
             Metrics are filtered to match your enabled modules. Enable more modules or import data to populate your dashboard.
           </p>
         </div>
       )}
 
-      <AiSuggestionsPanel timePeriod={timePeriod} />
+      <PermissionGate module="dashboard" permission="view_reports">
+        <AiSuggestionsPanel timePeriod={timePeriod} />
+      </PermissionGate>
 
       <SetupChecklistButton workspace={workspace} counts={setupCounts} />
     </div>
+    </ModuleAccessGuard>
   )
 }

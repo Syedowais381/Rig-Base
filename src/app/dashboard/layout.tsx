@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { Sidebar } from '@/components/dashboard/sidebar'
@@ -42,6 +42,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (workspace) setWorkspace(workspace)
   }, [workspace, setWorkspace])
 
+  const queryClient = useQueryClient()
+
+  useQuery({
+    queryKey: ['roles-migrate'],
+    queryFn: async () => {
+      const res = await fetch('/api/roles/migrate', { method: 'POST' })
+      if (res.ok) {
+        await queryClient.invalidateQueries({ queryKey: ['roles'] })
+        return res.json()
+      }
+      return null
+    },
+    enabled: !!workspace?.id && workspace.user_id === profile?.id,
+    staleTime: Infinity,
+    retry: 1,
+  })
+
   if (profileLoading || workspaceLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -54,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex relative">
       <Sidebar />
       <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
-        <div className="p-6">
+        <div className="p-8 lg:p-10">
           {children}
         </div>
       </main>
