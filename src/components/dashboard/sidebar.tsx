@@ -6,6 +6,7 @@ import { useWorkspaceStore } from '@/store/workspace'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { ModuleKey } from '@/lib/rbac/types'
 import { Logo } from '@/components/brand/logo'
+import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
 import {
   LayoutDashboard,
   Users,
@@ -50,7 +51,7 @@ const moduleRoutes: Record<string, string> = {
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { workspace, profile, sidebarOpen, toggleSidebar } = useWorkspaceStore()
+  const { workspace, profile, memberships, sidebarOpen, toggleSidebar } = useWorkspaceStore()
   const { canViewModule, roleName } = usePermissions()
   const supabase = createClient()
 
@@ -114,7 +115,9 @@ export function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 py-5 px-2 space-y-0.5 overflow-y-auto">
+      <WorkspaceSwitcher memberships={memberships} collapsed={!sidebarOpen} />
+
+      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {activeModules.map((module) => {
           const Icon = moduleIcons[module] || LayoutDashboard
           const route = moduleRoutes[module]

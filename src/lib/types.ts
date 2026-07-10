@@ -5,6 +5,7 @@ export interface Profile {
   business_name: string
   avatar_url: string | null
   onboarding_completed: boolean
+  active_workspace_id?: string | null
   created_at: string
 }
 

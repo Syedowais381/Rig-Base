@@ -25,10 +25,10 @@ export async function POST(request: Request) {
   if (error) {
     const message = error.message.includes('Invalid or expired')
       ? 'This invite is invalid or has already been used'
-      : error.message.includes('Already linked')
-        ? 'Your account is already linked to a workspace'
-        : error.message.includes('email')
-          ? 'This invite was sent to a different email address'
+      : error.message.includes('already own')
+        ? 'You already own this organization'
+        : error.message.includes('already a member')
+          ? 'You are already a member of this organization'
           : error.message
     return NextResponse.json({ error: message }, { status: 400 })
   }

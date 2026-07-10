@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { resolveWorkspaceForUser } from '@/lib/workspace-access'
 import { NextResponse } from 'next/server'
 
 export async function GET(

@@ -27,6 +27,7 @@ function InviteContent() {
   const [accepting, setAccepting] = useState(false)
   const [sessionChecked, setSessionChecked] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [verificationPending, setVerificationPending] = useState(false)
 
   const [mode, setMode] = useState<'signup' | 'login'>('signup')
@@ -56,7 +57,9 @@ function InviteContent() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setIsLoggedIn(!!user)
+      setUserEmail(user?.email ?? null)
       setSessionChecked(true)
+      if (user?.email) setMode('login')
     })
   }, [supabase.auth])
 
@@ -75,18 +78,14 @@ function InviteContent() {
       return false
     }
 
-    toast.success('Welcome to the team!')
+    toast.success('You have joined the organization!')
     router.push('/dashboard')
     router.refresh()
     return true
   }
 
-  useEffect(() => {
-    if (sessionChecked && isLoggedIn && invite && token && !verificationPending) {
-      acceptInvite()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionChecked, isLoggedIn, invite, token, verificationPending])
+  const emailMatchesInvite =
+    userEmail && invite && userEmail.toLowerCase() === invite.email.toLowerCase()
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -107,7 +106,12 @@ function InviteContent() {
     })
 
     if (error) {
-      toast.error(error.message)
+      if (error.message.toLowerCase().includes('already registered')) {
+        toast.message('An account with this email already exists — use Log In & Join')
+        setMode('login')
+      } else {
+        toast.error(error.message)
+      }
       setSubmitting(false)
       return
     }
@@ -142,7 +146,7 @@ function InviteContent() {
     setSubmitting(false)
   }
 
-  if (loading || (sessionChecked && isLoggedIn && !verificationPending)) {
+  if (loading || (sessionChecked && isLoggedIn && accepting)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-accent" />
@@ -223,6 +227,51 @@ function InviteContent() {
         </div>
 
         <div className="border border-border-primary p-6">
+          {sessionChecked && isLoggedIn && !emailMatchesInvite && (
+            <div className="mb-6 p-4 border border-warning/30 bg-warning/5 text-sm">
+              <p className="text-text-primary mb-2">
+                You are signed in as <strong>{userEmail}</strong>, but this invite was sent to <strong>{invite.email}</strong>.
+              </p>
+              <p className="text-text-secondary mb-3">
+                Sign out and use the invited email, or switch accounts to accept this invitation.
+              </p>
+              <button
+                type="button"
+                onClick={async () => {
+                  await supabase.auth.signOut()
+                  setIsLoggedIn(false)
+                  setUserEmail(null)
+                  toast.message('Signed out — you can now log in with the invited email')
+                }}
+                className="text-sm text-accent hover:text-accent-hover"
+              >
+                Sign out and continue
+              </button>
+            </div>
+          )}
+
+          {sessionChecked && isLoggedIn && emailMatchesInvite && (
+            <div className="mb-6 space-y-4">
+              <p className="text-sm text-text-secondary">
+                You are signed in as <strong>{userEmail}</strong>. Join this organization while keeping access to your other workspaces.
+              </p>
+              <button
+                type="button"
+                onClick={() => acceptInvite()}
+                disabled={accepting}
+                className="w-full form-submit flex items-center justify-center gap-2"
+              >
+                {accepting && <Loader2 size={18} className="animate-spin" />}
+                Join {invite.business_name}
+              </button>
+              <p className="text-xs text-text-muted text-center">
+                Already have your own ERP? You can switch between organizations anytime from the sidebar.
+              </p>
+            </div>
+          )}
+
+          {(!isLoggedIn || !emailMatchesInvite) && (
+          <>
           <div className="flex gap-2 mb-6">
             <button
               type="button"
@@ -286,6 +335,8 @@ function InviteContent() {
               {mode === 'signup' ? 'Create Account & Join' : 'Log In & Join'}
             </button>
           </form>
+          </>
+          )}
         </div>
       </div>
     </div>

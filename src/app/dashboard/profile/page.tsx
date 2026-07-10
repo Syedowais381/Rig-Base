@@ -13,7 +13,7 @@ import { User, Shield, LayoutGrid, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function ProfilePage() {
-  const { profile, workspace } = useWorkspaceStore()
+  const { profile, workspace, memberships } = useWorkspaceStore()
   const { roleName, permissions, isOwner, canViewModule } = usePermissions()
   const supabase = createClient()
   const queryClient = useQueryClient()
@@ -143,6 +143,41 @@ export default function ProfilePage() {
         </p>
       </motion.div>
 
+      {memberships.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+          className="ai-card border border-border-primary p-6 mb-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-accent-muted flex items-center justify-center">
+              <LayoutGrid size={16} className="text-accent" />
+            </div>
+            <h2 className="font-semibold">Your organizations</h2>
+          </div>
+          <div className="space-y-2">
+            {memberships.map((m) => (
+              <div
+                key={m.workspace_id}
+                className={`px-3 py-2.5 border text-sm ${
+                  m.workspace_id === workspace?.id
+                    ? 'border-accent/40 bg-accent/5 text-text-primary'
+                    : 'border-border-primary bg-bg-tertiary text-text-secondary'
+                }`}
+              >
+                <p className="font-medium">{m.business_name}</p>
+                <p className="text-xs text-text-tertiary mt-0.5">
+                  {m.membership_type === 'owner' ? 'Owner' : m.role_name} · {m.business_type}
+                  {m.workspace_id === workspace?.id ? ' · Current' : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-text-muted mt-3">Switch organizations from the sidebar menu.</p>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -153,7 +188,7 @@ export default function ProfilePage() {
           <div className="w-8 h-8 bg-accent-muted flex items-center justify-center">
             <LayoutGrid size={16} className="text-accent" />
           </div>
-          <h2 className="font-semibold">Accessible modules</h2>
+          <h2 className="font-semibold">Accessible modules (current org)</h2>
         </div>
 
         <div className="flex flex-wrap gap-2">

@@ -21,7 +21,7 @@ export function isChecklistTaskComplete(
   workspace: Pick<WorkspaceConfig, 'shifts'>
 ): boolean {
   const id = task.id.toLowerCase()
-  const module = task.module.toLowerCase()
+  const taskModule = task.module.toLowerCase()
   const title = task.title.toLowerCase()
 
   if (matchesAny(id, ['review_dashboard', 'review_metrics']) || matchesAny(title, ['review your dashboard'])) {
@@ -31,7 +31,7 @@ export function isChecklistTaskComplete(
   if (
     matchesAny(id, ['employee', 'staff', 'team']) ||
     matchesAny(title, ['employee', 'staff']) ||
-    (module === 'hr' && matchesAny(id, ['add', 'setup', 'configure']))
+    (taskModule === 'hr' && matchesAny(id, ['add', 'setup', 'configure']))
   ) {
     if (matchesAny(id, ['shift']) || matchesAny(title, ['shift'])) {
       return !!(workspace.shifts && workspace.shifts.length > 0)
@@ -42,7 +42,7 @@ export function isChecklistTaskComplete(
   if (
     matchesAny(id, ['inventory', 'stock', 'menu', 'product']) ||
     matchesAny(title, ['inventory', 'stock', 'menu']) ||
-    module === 'inventory'
+    taskModule === 'inventory'
   ) {
     return counts.products > 0
   }
@@ -50,7 +50,7 @@ export function isChecklistTaskComplete(
   if (
     matchesAny(id, ['finance', 'opening', 'balance', 'expense', 'revenue']) ||
     matchesAny(title, ['opening', 'balance', 'finance']) ||
-    (module === 'finance' && !matchesAny(id, ['review']))
+    (taskModule === 'finance' && !matchesAny(id, ['review']))
   ) {
     return counts.transactions > 0
   }
@@ -58,7 +58,7 @@ export function isChecklistTaskComplete(
   if (
     matchesAny(id, ['supplier', 'vendor', 'procurement']) ||
     matchesAny(title, ['supplier', 'vendor', 'procurement']) ||
-    module === 'supply_chain'
+    taskModule === 'supply_chain'
   ) {
     if (matchesAny(id, ['order', 'purchase']) || matchesAny(title, ['purchase order'])) {
       return counts.purchaseOrders > 0
@@ -69,7 +69,7 @@ export function isChecklistTaskComplete(
   if (
     matchesAny(id, ['customer', 'crm', 'loyalty', 'contact']) ||
     matchesAny(title, ['customer', 'loyalty', 'contact']) ||
-    module === 'crm'
+    taskModule === 'crm'
   ) {
     return counts.customers > 0
   }

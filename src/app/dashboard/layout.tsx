@@ -8,7 +8,7 @@ import { Sidebar } from '@/components/dashboard/sidebar'
 import { Loader2 } from 'lucide-react'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { setProfile, setWorkspace, sidebarOpen } = useWorkspaceStore()
+  const { setProfile, setWorkspace, setMemberships, sidebarOpen } = useWorkspaceStore()
   const supabase = createClient()
 
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -22,6 +22,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .eq('id', user.id)
         .single()
       return data
+    },
+  })
+
+  const { data: memberships = [], isLoading: membershipsLoading } = useQuery({
+    queryKey: ['workspaces'],
+    queryFn: async () => {
+      const res = await fetch('/api/workspaces')
+      if (!res.ok) return []
+      return res.json()
     },
   })
 
@@ -42,6 +51,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (workspace) setWorkspace(workspace)
   }, [workspace, setWorkspace])
 
+  useEffect(() => {
+    if (memberships.length > 0) setMemberships(memberships)
+  }, [memberships, setMemberships])
+
   const queryClient = useQueryClient()
 
   useQuery({
@@ -59,7 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     retry: 1,
   })
 
-  if (profileLoading || workspaceLoading) {
+  if (profileLoading || workspaceLoading || membershipsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 size={24} className="animate-spin text-accent" />
