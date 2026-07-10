@@ -149,20 +149,6 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border-primary p-2 space-y-0.5">
-        <Link
-          href="/dashboard/profile"
-          className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${
-            pathname === '/dashboard/profile'
-              ? 'text-text-primary'
-              : 'text-text-tertiary hover:text-text-secondary'
-          }`}
-        >
-          <div className="w-[18px] h-[18px] rounded-full bg-bg-tertiary border border-border-primary flex items-center justify-center text-[9px] font-medium text-accent shrink-0">
-            {initials}
-          </div>
-          {sidebarOpen && <span className="text-sm">My Profile</span>}
-        </Link>
-
         {canViewModule('settings') && (
         <Link
           href="/dashboard/settings"
