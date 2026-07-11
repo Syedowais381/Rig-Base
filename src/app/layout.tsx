@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { IBM_Plex_Sans, IBM_Plex_Mono, Playfair, Playfair_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/providers'
-import { LOGO_MARK_SRC } from '@/lib/brand'
 import './globals.css'
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -32,10 +31,6 @@ const playfairStats = Playfair({
 export const metadata: Metadata = {
   title: 'Rig Base',
   description: 'Your personalized business management platform',
-  icons: {
-    icon: [{ url: LOGO_MARK_SRC, type: 'image/png' }],
-    apple: [{ url: LOGO_MARK_SRC, type: 'image/png' }],
-  },
 }
 
 export default function RootLayout({
