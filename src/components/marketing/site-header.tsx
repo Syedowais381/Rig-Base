@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
+import { BrandMark } from '@/components/brand/brand-mark'
 
 const NAV_LINKS = [
   { href: '#capabilities', label: 'Capabilities' },
@@ -27,22 +28,17 @@ export function SiteHeader() {
       <div
         className={`max-w-7xl mx-auto rounded-2xl transition-all duration-500 pointer-events-auto ${
           scrolled
-            ? 'border border-white/10 bg-[#0a0a0a]/85 backdrop-blur-xl'
+            ? 'border border-white/10 bg-[#0a0a0a]/88 backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.35)]'
             : 'border border-white/5 bg-transparent backdrop-blur-[2px]'
         }`}
       >
-        <div className="flex items-center justify-between gap-4 px-4 sm:px-5 h-[4.75rem] overflow-hidden">
-          <Link href="/" className="flex items-center gap-3.5 min-w-0 shrink-0 group h-full">
-            <span className="flex items-center justify-center h-[4.75rem] w-[5.25rem] shrink-0">
+        <div className="flex items-center justify-between gap-4 px-4 sm:px-5 h-[4.75rem]">
+          <Link href="/" className="flex items-center gap-3 sm:gap-4 min-w-0 shrink-0 group">
+            <span className="flex items-center justify-center h-14 w-14 sm:h-[4.75rem] sm:w-[4.75rem] shrink-0">
               <Logo variant="mark" size="header" priority />
             </span>
-            <div className="hidden sm:block min-w-0 leading-tight">
-              <span className="block text-base font-serif font-medium text-white tracking-tight group-hover:text-[#f0ede6] transition-colors duration-200">
-                Rig Base
-              </span>
-              <span className="block text-xs text-text-tertiary mt-0.5 group-hover:text-text-secondary transition-colors duration-200">
-                Enterprise operations platform
-              </span>
+            <div className="hidden sm:flex items-center min-w-0">
+              <BrandMark variant="default" showPlatform={false} tone="light" wordmarkSize="lg" />
             </div>
           </Link>
 
@@ -73,7 +69,7 @@ export function SiteHeader() {
             <span className="hidden sm:block w-px h-5 bg-white/10" aria-hidden />
             <Link
               href="/auth/signup"
-              className="group inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-md text-[#0a0a0a] bg-accent hover:bg-accent-hover transition-all duration-300"
+              className="group inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 text-sm font-semibold rounded-md text-[#0a0a0a] bg-accent hover:bg-accent-hover transition-all duration-300 shadow-[0_0_24px_rgba(197,160,89,0.2)]"
             >
               Get started
               <ArrowRight

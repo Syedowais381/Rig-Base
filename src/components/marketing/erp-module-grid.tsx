@@ -70,12 +70,17 @@ export function ErpModuleGrid() {
   const active = MODULES.find((m) => m.id === activeId) ?? MODULES[0]
 
   return (
-    <section className="px-6 py-20 border-y border-border-primary/80 bg-bg-secondary/30">
+    <section id="modules" className="relative px-6 py-24 border-y border-border-primary/60 bg-bg-secondary/20 scroll-mt-32">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" aria-hidden />
       <div className="max-w-7xl mx-auto">
         <div className="mb-10 max-w-2xl">
-          <p className="text-eyebrow mb-3">ERP modules</p>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
-            Six operational domains. One connected system.
+          <div className="flex items-center gap-3 mb-4">
+            <span className="h-px w-8 bg-gradient-to-r from-accent/70 to-transparent" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent">ERP modules</p>
+          </div>
+          <h2 className="font-serif text-2xl sm:text-[2rem] font-medium tracking-tight text-text-primary leading-tight">
+            Six operational domains.
+            <span className="text-accent"> One connected system.</span>
           </h2>
           <p className="text-sm text-text-secondary mt-3 leading-relaxed">
             Hover a module to inspect capabilities — each area shares the same workspace, permissions model, and data import tooling.
@@ -95,7 +100,7 @@ export function ErpModuleGrid() {
                   onFocus={() => setActiveId(module.id)}
                   className={`marketing-tile text-left rounded-xl border p-4 transition-all duration-300 ${
                     isActive
-                      ? 'border-accent/50 bg-accent/10 shadow-[0_0_32px_rgba(37,99,235,0.15)] scale-[1.02]'
+                      ? 'border-accent/50 bg-accent/10 shadow-[0_0_32px_rgba(197,160,89,0.15)] scale-[1.02]'
                       : 'border-border-primary bg-bg-secondary hover:border-border-secondary hover:bg-bg-tertiary/60'
                   }`}
                 >

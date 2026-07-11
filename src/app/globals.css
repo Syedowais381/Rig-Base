@@ -127,6 +127,16 @@ select option {
   line-height: 1.1;
 }
 
+.hero-headline {
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+::selection {
+  background: rgba(197, 160, 89, 0.35);
+  color: var(--color-text-primary);
+}
+
 .text-eyebrow {
   font-size: 0.6875rem;
   font-weight: 600;
@@ -763,6 +773,35 @@ select option {
 
 .marketing-step-hover:hover {
   border-color: var(--color-accent);
+}
+
+.marketing-card-premium {
+  transition: border-color 0.4s ease, background-color 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.marketing-card-premium:hover {
+  border-color: var(--color-accent-subtle);
+  background-color: rgba(26, 26, 31, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(197, 160, 89, 0.08);
+}
+
+.marketing-step-premium {
+  transition: border-color 0.35s ease, background-color 0.35s ease;
+}
+
+.marketing-step-premium:hover {
+  border-color: var(--color-accent-subtle);
+  background-color: rgba(10, 10, 10, 0.55);
+}
+
+.marketing-cta-panel {
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.marketing-cta-panel:hover {
+  border-color: rgba(197, 160, 89, 0.45);
+  box-shadow: 0 0 48px rgba(197, 160, 89, 0.08);
 }
 
 @keyframes pulseDot {

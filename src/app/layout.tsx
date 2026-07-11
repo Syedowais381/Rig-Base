@@ -32,8 +32,8 @@ export const metadata: Metadata = {
   title: 'Rig Base',
   description: 'Your personalized business management platform',
   icons: {
-    icon: LOGO_MARK_SRC,
-    apple: LOGO_MARK_SRC,
+    icon: [{ url: LOGO_MARK_SRC, type: 'image/png' }],
+    apple: [{ url: LOGO_MARK_SRC, type: 'image/png' }],
   },
 }
 
