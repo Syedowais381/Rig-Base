@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
+import { getActiveOrganizationName } from '@/lib/workspace-access'
 import { usePermissions } from '@/hooks/use-permissions'
 import { MODULE_DEFINITIONS, PERMISSION_DEFINITIONS } from '@/lib/rbac/constants'
 import { formatPermissionSummary } from '@/lib/rbac/permissions'
@@ -46,6 +47,11 @@ export default function ProfilePage() {
     return formatPermissionSummary(visiblePermissions)
   }, [permissions, canViewModule])
 
+  const activeOrganizationName = useMemo(
+    () => getActiveOrganizationName(workspace, memberships, profile?.business_name ?? 'Organization'),
+    [workspace, memberships, profile?.business_name]
+  )
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!profile?.id) return
@@ -71,7 +77,7 @@ export default function ProfilePage() {
     <div className="max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="page-title">My Profile</h1>
-        <p className="page-subtitle">Your account, role, and access within {profile.business_name}</p>
+        <p className="page-subtitle">Your account, role, and access within {activeOrganizationName}</p>
       </div>
 
       <motion.div
@@ -103,7 +109,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">Organization</label>
-              <input type="text" value={profile.business_name} disabled className="form-field opacity-60 cursor-not-allowed" />
+              <input type="text" value={activeOrganizationName} disabled className="form-field opacity-60 cursor-not-allowed" />
             </div>
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">Account type</label>

@@ -3,6 +3,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
+import { getActiveOrganizationName } from '@/lib/workspace-access'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { ModuleKey } from '@/lib/rbac/types'
 import { Logo } from '@/components/brand/logo'
@@ -54,6 +55,12 @@ export function Sidebar() {
   const { workspace, profile, memberships, sidebarOpen, toggleSidebar } = useWorkspaceStore()
   const { canViewModule, roleName } = usePermissions()
   const supabase = createClient()
+
+  const activeOrganizationName = getActiveOrganizationName(
+    workspace,
+    memberships,
+    profile?.business_name ?? 'Organization'
+  )
 
   const activeModules = workspace?.modules
     ? Object.entries(workspace.modules)
@@ -180,7 +187,7 @@ export function Sidebar() {
               <div className="min-w-0">
                 <p className="text-xs font-medium truncate text-text-primary">{profile.full_name}</p>
                 <p className="text-[11px] text-text-tertiary truncate">
-                  {roleName} · {profile.business_name}
+                  {roleName} · {activeOrganizationName}
                 </p>
               </div>
             </Link>

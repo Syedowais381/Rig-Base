@@ -184,3 +184,15 @@ export async function hasWorkspaceAccess(
   const memberships = await listWorkspacesForUser(supabase, userId)
   return memberships.length > 0
 }
+
+/** Display name for the workspace the user is currently viewing. */
+export function getActiveOrganizationName(
+  workspace: { id: string; business_type: string } | null,
+  memberships: WorkspaceMembership[],
+  fallback = 'Organization'
+): string {
+  if (!workspace) return fallback
+
+  const membership = memberships.find((m) => m.workspace_id === workspace.id)
+  return membership?.business_name ?? workspace.business_type ?? fallback
+}

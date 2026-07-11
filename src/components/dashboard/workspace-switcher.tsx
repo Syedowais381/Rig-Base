@@ -6,11 +6,25 @@ import { useRouter } from 'next/navigation'
 import { Building2, Check, ChevronDown, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useWorkspaceStore } from '@/store/workspace'
-import type { WorkspaceMembership } from '@/lib/workspace-access'
+import { getActiveOrganizationName, type WorkspaceMembership } from '@/lib/workspace-access'
 
 type WorkspaceSwitcherProps = {
   memberships: WorkspaceMembership[]
   collapsed?: boolean
+}
+
+function OrganizationSectionLabel({ collapsed }: { collapsed?: boolean }) {
+  if (collapsed) return null
+
+  return (
+    <div className="flex items-center gap-2 px-1 mb-2">
+      <span className="h-px flex-1 bg-border-primary" aria-hidden />
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary shrink-0">
+        Organization
+      </span>
+      <span className="h-px flex-1 bg-border-primary" aria-hidden />
+    </div>
+  )
 }
 
 export function WorkspaceSwitcher({ memberships, collapsed }: WorkspaceSwitcherProps) {
@@ -20,14 +34,18 @@ export function WorkspaceSwitcher({ memberships, collapsed }: WorkspaceSwitcherP
   const queryClient = useQueryClient()
   const router = useRouter()
 
+  const activeOrganizationName = getActiveOrganizationName(workspace, memberships)
+
   if (memberships.length <= 1) {
     if (collapsed || !workspace) return null
     return (
-      <div className="px-3 py-2 mb-2 border border-border-primary bg-bg-tertiary/40">
-        <p className="text-[10px] uppercase tracking-wide text-text-muted mb-0.5">Organization</p>
-        <p className="text-xs font-medium truncate text-text-primary">
-          {memberships[0]?.business_name ?? workspace.business_type}
-        </p>
+      <div className="px-2 mb-2">
+        <OrganizationSectionLabel />
+        <div className="px-3 py-2.5 border border-border-primary bg-bg-tertiary/40">
+          <p className="text-sm font-medium truncate text-text-primary">
+            {activeOrganizationName}
+          </p>
+        </div>
       </div>
     )
   }
@@ -56,7 +74,7 @@ export function WorkspaceSwitcher({ memberships, collapsed }: WorkspaceSwitcherP
       setWorkspace(payload.workspace)
       await queryClient.invalidateQueries()
       setOpen(false)
-      toast.success(`Switched to ${payload.workspace.business_type}`)
+      toast.success(`Switched to ${getActiveOrganizationName(payload.workspace, memberships)}`)
       router.refresh()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to switch')
@@ -67,6 +85,7 @@ export function WorkspaceSwitcher({ memberships, collapsed }: WorkspaceSwitcherP
 
   return (
     <div className="relative px-2 mb-2">
+      <OrganizationSectionLabel collapsed={collapsed} />
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -80,9 +99,8 @@ export function WorkspaceSwitcher({ memberships, collapsed }: WorkspaceSwitcherP
         {!collapsed && (
           <>
             <div className="min-w-0 flex-1 text-left">
-              <p className="text-[10px] uppercase tracking-wide text-text-muted">Organization</p>
-              <p className="text-xs font-medium truncate text-text-primary">{active.business_name}</p>
-              <p className="text-[10px] text-text-tertiary truncate">
+              <p className="text-sm font-medium truncate text-text-primary">{active.business_name}</p>
+              <p className="text-[11px] text-text-tertiary truncate">
                 {active.membership_type === 'owner' ? 'Owner' : active.role_name}
               </p>
             </div>
