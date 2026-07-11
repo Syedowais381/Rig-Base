@@ -29,7 +29,7 @@ function PlatformLabel({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
   return (
     <div className="flex items-center gap-2 w-full">
       <span className="h-px flex-1 bg-gradient-to-r from-transparent to-accent/50" />
-      <span className={`font-semibold uppercase text-accent shrink-0 ${sizeClass}`}>Platform</span>
+      <span className={`font-semibold uppercase text-accent shrink-0 ${sizeClass}`}>Command</span>
       <span className="h-px flex-1 bg-gradient-to-l from-transparent to-accent/50" />
     </div>
   )
