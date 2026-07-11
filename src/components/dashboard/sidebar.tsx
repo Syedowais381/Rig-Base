@@ -6,8 +6,9 @@ import { useWorkspaceStore } from '@/store/workspace'
 import { getActiveOrganizationName } from '@/lib/workspace-access'
 import { usePermissions } from '@/hooks/use-permissions'
 import type { ModuleKey } from '@/lib/rbac/types'
-import { Logo } from '@/components/brand/logo'
+import { SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from '@/lib/sidebar-layout'
 import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
+import { SidebarBrandTitle, SidebarBrandCollapsed } from '@/components/dashboard/sidebar-brand-title'
 import {
   LayoutDashboard,
   Users,
@@ -84,43 +85,10 @@ export function Sidebar() {
 
   return (
     <motion.aside
-      animate={{ width: sidebarOpen ? 256 : 64 }}
+      animate={{ width: sidebarOpen ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED }}
       className="fixed left-0 top-0 h-screen bg-bg-secondary border-r border-border-primary flex flex-col z-20"
     >
-      <div className="h-14 flex items-center border-b border-border-primary shrink-0 px-2">
-        {sidebarOpen ? (
-          <div className="flex items-center justify-between w-full gap-2">
-            <Logo
-              variant="mark"
-              size="sm"
-              compact
-              showName
-              href="/dashboard"
-              className="min-w-0"
-            />
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="p-2 text-text-muted hover:text-text-tertiary transition-colors shrink-0"
-              aria-label="Collapse sidebar"
-            >
-              <ChevronLeft size={18} />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center w-full gap-1">
-            <Logo variant="mark" size="sm" compact href="/dashboard" className="mx-auto" />
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="p-1.5 text-text-muted hover:text-text-tertiary transition-colors shrink-0"
-              aria-label="Expand sidebar"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
-      </div>
+      {sidebarOpen ? <SidebarBrandTitle /> : <SidebarBrandCollapsed />}
 
       <WorkspaceSwitcher memberships={memberships} collapsed={!sidebarOpen} />
 
@@ -193,6 +161,20 @@ export function Sidebar() {
             </Link>
           </div>
         )}
+      </div>
+
+      <div className="shrink-0 border-t border-border-primary p-2">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className={`w-full flex items-center transition-colors text-text-muted hover:text-text-tertiary ${
+            sidebarOpen ? 'justify-start gap-3 px-3 py-2.5' : 'justify-center p-2.5'
+          }`}
+          aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          {sidebarOpen ? <ChevronLeft size={18} strokeWidth={1.75} /> : <ChevronRight size={18} strokeWidth={1.75} />}
+          {sidebarOpen && <span className="text-sm">Collapse</span>}
+        </button>
       </div>
     </motion.aside>
   )
