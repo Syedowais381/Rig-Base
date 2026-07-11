@@ -1,5 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
+  canAccessModule,
+  canViewModuleWithContext,
+  getDefaultLandingRoute,
+  type ModuleAccessContext,
+} from '@/lib/rbac/module-access'
+import {
   hasPermission,
   normalizeRolePermissions,
   ownerPermissions,
@@ -10,6 +16,7 @@ import { resolveWorkspaceForUser, type WorkspaceAccess } from '@/lib/workspace-a
 export type ServerPermissionContext = WorkspaceAccess & {
   permissions: ModulePermissionMap
   roleName: string
+  accessContext: ModuleAccessContext
 }
 
 export async function resolveServerPermissions(
@@ -31,22 +38,51 @@ export async function resolveServerPermissions(
 
   if (access.isOwner) {
     const ownerRole = normalizedRoles.find((r) => r.name === 'Owner')
+    const permissions = ownerRole?.permissions ?? ownerPermissions(access.workspace.modules)
+    const accessContext: ModuleAccessContext = {
+      workspaceModules: access.workspace.modules,
+      permissions,
+      department: null,
+      isOwner: true,
+      roleName: 'Owner',
+    }
+
     return {
       ...access,
       roleName: 'Owner',
-      permissions: ownerRole?.permissions ?? ownerPermissions(access.workspace.modules),
+      permissions,
+      accessContext,
     }
   }
 
   if (!access.employee?.role_id) {
-    return { ...access, roleName: 'Guest', permissions: {} }
+    const accessContext: ModuleAccessContext = {
+      workspaceModules: access.workspace.modules,
+      permissions: {},
+      department: access.employee?.department ?? null,
+      isOwner: false,
+      roleName: 'Guest',
+    }
+
+    return { ...access, roleName: 'Guest', permissions: {}, accessContext }
   }
 
   const activeRole = normalizedRoles.find((r) => r.id === access.employee?.role_id)
+  const roleName = activeRole?.name ?? 'Staff'
+  const permissions = activeRole?.permissions ?? {}
+  const accessContext: ModuleAccessContext = {
+    workspaceModules: access.workspace.modules,
+    permissions,
+    department: access.employee?.department ?? null,
+    isOwner: false,
+    roleName,
+  }
+
   return {
     ...access,
-    roleName: activeRole?.name ?? 'Staff',
-    permissions: activeRole?.permissions ?? {},
+    roleName,
+    permissions,
+    accessContext,
   }
 }
 
@@ -55,16 +91,16 @@ export function userCan(
   module: ModuleKey,
   permission: PermissionKey
 ): boolean {
-  if (module !== 'settings' && module in ctx.workspace.modules) {
-    const key = module as keyof typeof ctx.workspace.modules
-    if (!ctx.workspace.modules[key]) return false
-  }
   if (ctx.isOwner) return true
-  return hasPermission(ctx.permissions, module, permission)
+  return canAccessModule(ctx.accessContext, module, permission)
 }
 
 export function userCanViewModule(ctx: ServerPermissionContext, module: ModuleKey): boolean {
   return userCan(ctx, module, 'view')
+}
+
+export function resolveDefaultLandingRoute(ctx: ServerPermissionContext): string {
+  return getDefaultLandingRoute(ctx.accessContext)
 }
 
 export async function requireServerPermission(
@@ -91,3 +127,6 @@ export const MODULE_API_MAP = {
   attendance: 'hr',
   leave_requests: 'hr',
 } as const satisfies Record<string, ModuleKey>
+
+// Keep hasPermission available for legacy imports within this module.
+export { hasPermission }

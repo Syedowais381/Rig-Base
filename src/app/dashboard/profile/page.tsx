@@ -14,7 +14,7 @@ import { toast } from 'sonner'
 
 export default function ProfilePage() {
   const { profile, workspace, memberships } = useWorkspaceStore()
-  const { roleName, permissions, isOwner, canViewModule } = usePermissions()
+  const { roleName, permissions, isOwner, canViewModule, department, departmentModules } = usePermissions()
   const supabase = createClient()
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
@@ -37,7 +37,14 @@ export default function ProfilePage() {
     [workspace?.modules, canViewModule]
   )
 
-  const permissionSummary = useMemo(() => formatPermissionSummary(permissions), [permissions])
+  const permissionSummary = useMemo(() => {
+    const visiblePermissions = Object.fromEntries(
+      Object.entries(permissions).filter(([moduleKey]) =>
+        canViewModule(moduleKey as ModuleKey)
+      )
+    )
+    return formatPermissionSummary(visiblePermissions)
+  }, [permissions, canViewModule])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -122,7 +129,20 @@ export default function ProfilePage() {
           </div>
           <div>
             <h2 className="font-semibold">Role & permissions</h2>
-            <p className="text-sm text-text-secondary">Assigned role: <span className="text-text-primary">{roleName}</span></p>
+            <p className="text-sm text-text-secondary">
+              Assigned role: <span className="text-text-primary">{roleName}</span>
+              {!isOwner && department ? (
+                <>
+                  {' '}
+                  · Department: <span className="text-text-primary">{department}</span>
+                </>
+              ) : null}
+            </p>
+            {!isOwner && departmentModules.length > 0 ? (
+              <p className="text-xs text-text-tertiary mt-1">
+                Department modules: {departmentModules.join(', ').replace(/_/g, ' ')}
+              </p>
+            ) : null}
           </div>
         </div>
 

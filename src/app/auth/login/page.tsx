@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { ExistingSessionBanner } from '@/components/ExistingSessionBanner'
 import { Logo } from '@/components/brand/logo'
+import { fetchDefaultLandingRoute } from '@/lib/auth-landing'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -29,7 +30,8 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
+    const route = await fetchDefaultLandingRoute()
+    router.push(route)
     router.refresh()
   }
 

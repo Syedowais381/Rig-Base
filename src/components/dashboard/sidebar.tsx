@@ -59,7 +59,7 @@ export function Sidebar() {
     ? Object.entries(workspace.modules)
         .filter(([key, active]) => active && canViewModule(key as ModuleKey))
         .map(([key]) => key)
-    : ['dashboard']
+    : []
 
   async function handleLogout() {
     await supabase.auth.signOut()

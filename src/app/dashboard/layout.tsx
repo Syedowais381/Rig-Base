@@ -5,6 +5,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspaceStore } from '@/store/workspace'
 import { Sidebar } from '@/components/dashboard/sidebar'
+import { PermissionRouteGuard } from '@/components/rbac/permission-route-guard'
+import { rolesQueryKey } from '@/lib/rbac/query-keys'
 import { Loader2 } from 'lucide-react'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -62,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     queryFn: async () => {
       const res = await fetch('/api/roles/migrate', { method: 'POST' })
       if (res.ok) {
-        await queryClient.invalidateQueries({ queryKey: ['roles'] })
+        await queryClient.invalidateQueries({ queryKey: rolesQueryKey(workspace?.id) })
         return res.json()
       }
       return null
@@ -84,6 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen flex relative">
       <Sidebar />
       <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
+        <PermissionRouteGuard />
         <div className="p-8 lg:p-10">
           {children}
         </div>

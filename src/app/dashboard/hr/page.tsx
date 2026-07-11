@@ -28,6 +28,7 @@ import {
   normalizeRolePermissions,
 } from '@/lib/rbac/permissions'
 import type { ModulePermissionMap } from '@/lib/rbac/types'
+import { PERMISSION_QUERY_ROOTS, rolesQueryKey } from '@/lib/rbac/query-keys'
 
 export default function HRPage() {
   const [showAddEmployee, setShowAddEmployee] = useState(false)
@@ -57,7 +58,7 @@ export default function HRPage() {
   })
 
   const { data: roles = [] } = useQuery({
-    queryKey: ['roles'],
+    queryKey: rolesQueryKey(workspace?.id),
     queryFn: async () => {
       const { data } = await supabase
         .from('roles')
@@ -100,6 +101,9 @@ export default function HRPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] })
+      for (const root of PERMISSION_QUERY_ROOTS) {
+        queryClient.invalidateQueries({ queryKey: [root] })
+      }
       setEditing(null)
       toast.success('Employee updated')
     },
@@ -179,7 +183,9 @@ export default function HRPage() {
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] })
+      for (const root of PERMISSION_QUERY_ROOTS) {
+        queryClient.invalidateQueries({ queryKey: [root] })
+      }
       setEditingRole(null)
       toast.success('Role permissions updated')
     },

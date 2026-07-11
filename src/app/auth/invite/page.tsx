@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Loader2, Mail, Shield, Building2, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Logo } from '@/components/brand/logo'
+import { fetchDefaultLandingRoute } from '@/lib/auth-landing'
 
 type InviteDetails = {
   employee_name: string
@@ -79,7 +80,8 @@ function InviteContent() {
     }
 
     toast.success('You have joined the organization!')
-    router.push('/dashboard')
+    const route = await fetchDefaultLandingRoute()
+    router.push(route)
     router.refresh()
     return true
   }

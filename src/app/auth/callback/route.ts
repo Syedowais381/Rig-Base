@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { resolveDefaultLandingRoute, resolveServerPermissions } from '@/lib/rbac/server-permissions'
 import { NextResponse } from 'next/server'
 
 async function resolvePostAuthRedirect(supabase: Awaited<ReturnType<typeof createClient>>, userId: string, origin: string) {
@@ -8,19 +9,11 @@ async function resolvePostAuthRedirect(supabase: Awaited<ReturnType<typeof creat
     .eq('id', userId)
     .maybeSingle()
 
-  if (profile?.onboarding_completed === true) {
-    return `${origin}/dashboard`
-  }
-
   const { data: workspace } = await supabase
     .from('workspaces')
     .select('id')
     .eq('user_id', userId)
     .maybeSingle()
-
-  if (workspace) {
-    return `${origin}/dashboard`
-  }
 
   const { data: employee } = await supabase
     .from('employees')
@@ -29,7 +22,11 @@ async function resolvePostAuthRedirect(supabase: Awaited<ReturnType<typeof creat
     .in('status', ['active', 'on_leave'])
     .maybeSingle()
 
-  if (employee) {
+  if (profile?.onboarding_completed === true || workspace || employee) {
+    const ctx = await resolveServerPermissions(supabase, userId)
+    if (ctx) {
+      return `${origin}${resolveDefaultLandingRoute(ctx)}`
+    }
     return `${origin}/dashboard`
   }
 
@@ -54,7 +51,9 @@ export async function GET(request: Request) {
             p_token: inviteToken,
           })
           if (!acceptError) {
-            return NextResponse.redirect(`${origin}/dashboard`)
+            const ctx = await resolveServerPermissions(supabase, user.id)
+            const route = ctx ? resolveDefaultLandingRoute(ctx) : '/dashboard'
+            return NextResponse.redirect(`${origin}${route}`)
           }
         }
 
