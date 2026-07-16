@@ -18,6 +18,9 @@ const priorityStyles: Record<AiInsightSuggestion['priority'], string> = {
   low: 'border-accent/30 bg-accent/5 text-accent',
 }
 
+const AI_INSIGHT_DISCLAIMER =
+  'AI-generated insights may be inaccurate or incomplete. They are for informational purposes only and do not constitute professional, financial, or legal advice. Verify important decisions against your own data before acting on them.'
+
 export function AiSuggestionsPanel({ timePeriod }: AiSuggestionsPanelProps) {
   const queryClient = useQueryClient()
 
@@ -44,7 +47,9 @@ export function AiSuggestionsPanel({ timePeriod }: AiSuggestionsPanelProps) {
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? 'Failed to generate AI insights')
+        const detail = typeof body.detail === 'string' ? body.detail : null
+        const base = body.error ?? 'Failed to generate AI insights'
+        throw new Error(detail ? `${base} (${detail})` : base)
       }
       return res.json() as Promise<AiInsightsResponse>
     },
@@ -156,6 +161,10 @@ export function AiSuggestionsPanel({ timePeriod }: AiSuggestionsPanelProps) {
           Add module data and metrics to unlock daily AI recommendations.
         </p>
       )}
+
+      <p className="text-[11px] text-text-muted leading-relaxed mt-5 pt-4 border-t border-border-primary/60">
+        {AI_INSIGHT_DISCLAIMER}
+      </p>
     </motion.section>
   )
 }

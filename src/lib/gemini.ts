@@ -1,11 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-
-export const geminiModel = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash-lite',
-})
-
 /** Ordered by reliability on the free tier; avoid deprecated 1.5 model names. */
 export const geminiModelFallbacks = [
   'gemini-2.5-flash-lite',
@@ -17,13 +11,49 @@ export const geminiModelFallbacks = [
 
 export const onboardingModelFallbacks = geminiModelFallbacks
 
+function normalizeGeminiApiKey(raw: string | undefined): string | null {
+  if (!raw) return null
+  const trimmed = raw.trim().replace(/^['"]|['"]$/g, '')
+  return trimmed.length > 0 ? trimmed : null
+}
+
+export function getGeminiApiKey(): string | null {
+  return normalizeGeminiApiKey(process.env.GEMINI_API_KEY)
+}
+
+export function isGeminiConfigured(): boolean {
+  return getGeminiApiKey() !== null
+}
+
+function getGenAI(): GoogleGenerativeAI {
+  const apiKey = getGeminiApiKey()
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is not configured')
+  }
+  return new GoogleGenerativeAI(apiKey)
+}
+
+function isNonRetryableGeminiError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+  return (
+    message.includes('api key') ||
+    message.includes('api_key') ||
+    message.includes('permission_denied') ||
+    message.includes('unauthenticated') ||
+    message.includes('401') ||
+    message.includes('403')
+  )
+}
+
 export async function generateGeminiText(
   prompt: string,
-  options?: { json?: boolean; temperature?: number }
+  options?: { json?: boolean; temperature?: number; maxModels?: number }
 ): Promise<string> {
+  const genAI = getGenAI()
+  const models = geminiModelFallbacks.slice(0, options?.maxModels ?? geminiModelFallbacks.length)
   let lastError: unknown
 
-  for (const modelName of geminiModelFallbacks) {
+  for (const modelName of models) {
     try {
       const model = genAI.getGenerativeModel({
         model: modelName,
@@ -37,6 +67,7 @@ export async function generateGeminiText(
     } catch (error) {
       lastError = error
       console.warn(`Gemini model ${modelName} failed`, error)
+      if (isNonRetryableGeminiError(error)) break
     }
   }
 

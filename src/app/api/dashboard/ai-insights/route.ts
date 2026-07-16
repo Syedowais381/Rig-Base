@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdminClient } from '@/lib/supabase/admin'
 import { requirePermission } from '@/lib/api/workspace-context'
 import {
   buildAiInsightContext,
@@ -7,8 +8,12 @@ import {
   getNextInsightAvailableAt,
   type AiInsightsResponse,
 } from '@/lib/dashboard/ai-insights'
+import { isGeminiConfigured } from '@/lib/gemini'
 import type { TimePeriod, WorkspaceConfig } from '@/lib/types'
 import { NextResponse } from 'next/server'
+
+export const maxDuration = 60
+export const dynamic = 'force-dynamic'
 
 const VALID_PERIODS: TimePeriod[] = ['today', 'week', 'month', 'year', 'all']
 
@@ -68,7 +73,9 @@ export async function GET(request: Request) {
 
   const access = await requirePermission(supabase, user.id, 'dashboard', 'view')
   if ('error' in access) {
-    return NextResponse.json({ error: 'Workspace not found' }, { status: access.status })
+    const message =
+      access.status === 403 ? 'You do not have permission to view AI insights.' : 'Workspace not found'
+    return NextResponse.json({ error: message }, { status: access.status })
   }
 
   const { data: workspace, error: workspaceError } = await supabase
@@ -103,8 +110,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!process.env.GEMINI_API_KEY) {
-    return NextResponse.json({ error: 'AI insights are not configured.' }, { status: 503 })
+  if (!isGeminiConfigured()) {
+    return NextResponse.json(
+      {
+        error: 'AI insights are not configured on this deployment.',
+        detail: 'Add GEMINI_API_KEY to your Vercel project environment variables (Production).',
+      },
+      { status: 503 }
+    )
   }
 
   const supabase = await createClient()
@@ -123,7 +136,11 @@ export async function POST(request: Request) {
 
   const access = await requirePermission(supabase, user.id, 'dashboard', 'view_reports')
   if ('error' in access) {
-    return NextResponse.json({ error: 'Workspace not found' }, { status: access.status })
+    const message =
+      access.status === 403
+        ? 'You do not have permission to generate AI insights.'
+        : 'Workspace not found'
+    return NextResponse.json({ error: message }, { status: access.status })
   }
 
   const { data: workspace, error: workspaceError } = await supabase
@@ -162,16 +179,21 @@ export async function POST(request: Request) {
   try {
     const insight = await generateAiInsights(context)
 
-    const { data: inserted, error: insertError } = await supabase
+    const insertPayload = {
+      workspace_id: workspace.id,
+      insight_date: insightDate,
+      time_period: timePeriod,
+      metrics_snapshot: context.metrics,
+      summary: insight.summary,
+      suggestions: insight.suggestions,
+    }
+
+    const adminClient = getSupabaseAdminClient()
+    const writeClient = adminClient ?? supabase
+
+    const { data: inserted, error: insertError } = await writeClient
       .from('dashboard_ai_insights')
-      .insert({
-        workspace_id: workspace.id,
-        insight_date: insightDate,
-        time_period: timePeriod,
-        metrics_snapshot: context.metrics,
-        summary: insight.summary,
-        suggestions: insight.suggestions,
-      })
+      .insert(insertPayload)
       .select('summary, suggestions, created_at, insight_date')
       .single()
 
@@ -190,22 +212,42 @@ export async function POST(request: Request) {
       }
 
       console.error('Failed to store AI insight', insertError)
-      return NextResponse.json({ error: 'Failed to save AI insights.' }, { status: 500 })
+      const isMissingTable = insertError.code === '42P01'
+      const isRls = insertError.code === '42501'
+      return NextResponse.json(
+        {
+          error: isMissingTable
+            ? 'AI insights storage is not set up in the database.'
+            : isRls
+              ? 'Unable to save AI insights for this workspace.'
+              : 'Failed to save AI insights.',
+          detail: insertError.message,
+        },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json(toAiResponse(inserted, false))
   } catch (error) {
     console.error('AI insight generation failed', error)
     const message = error instanceof Error ? error.message : 'Failed to generate AI insights.'
-    const isQuota = message.includes('429') || message.toLowerCase().includes('quota')
+    const lower = message.toLowerCase()
+    const isQuota = message.includes('429') || lower.includes('quota')
+    const isApiKey =
+      lower.includes('api key') ||
+      lower.includes('api_key') ||
+      lower.includes('permission_denied') ||
+      lower.includes('unauthenticated')
     return NextResponse.json(
       {
-        error: isQuota
-          ? 'Gemini API quota exceeded. Try again later or check your Google AI Studio plan.'
-          : 'Failed to generate AI insights. Please try again in a few minutes.',
-        detail: message.slice(0, 200),
+        error: isApiKey
+          ? 'Gemini API key is missing or invalid on this deployment.'
+          : isQuota
+            ? 'Gemini API quota exceeded. Try again later or check your Google AI Studio plan.'
+            : 'Failed to generate AI insights. Please try again in a few minutes.',
+        detail: message.slice(0, 300),
       },
-      { status: isQuota ? 429 : 502 }
+      { status: isQuota ? 429 : isApiKey ? 503 : 502 }
     )
   }
 }

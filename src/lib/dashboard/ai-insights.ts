@@ -147,6 +147,6 @@ Return JSON in this exact shape:
   ]
 }`
 
-  const text = await generateGeminiText(prompt, { json: true })
+  const text = await generateGeminiText(prompt, { json: true, maxModels: 3 })
   return extractJson(text)
 }
